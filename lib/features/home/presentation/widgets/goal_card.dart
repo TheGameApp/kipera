@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/saving_methods.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/extensions/num_extensions.dart';
 import '../../../../database/app_database.dart';
@@ -68,11 +70,31 @@ class GoalCard extends ConsumerWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Text(
-                          goal.method.replaceAll('_', ' '),
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              goal.method.replaceAll('_', ' '),
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            if (_reminderText(goal) != null) ...[
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.access_time_rounded,
+                                size: 12,
+                                color: AppColors.textSecondary.withValues(alpha: 0.6),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                _reminderText(goal)!,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary.withValues(alpha: 0.6),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
@@ -147,6 +169,22 @@ class GoalCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String? _reminderText(SavingsGoal goal) {
+    try {
+      final config = MethodConfig.fromJson(
+        jsonDecode(goal.methodConfig) as Map<String, dynamic>,
+      );
+      if (config.reminderHour != null && config.reminderMinute != null) {
+        final time = TimeOfDay(hour: config.reminderHour!, minute: config.reminderMinute!);
+        final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+        final minute = time.minute.toString().padLeft(2, '0');
+        final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+        return '$hour:$minute $period';
+      }
+    } catch (_) {}
+    return null;
   }
 
   IconData _getIconData(String name) {

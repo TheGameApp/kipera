@@ -262,61 +262,56 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-                  builder: (ctx) => SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 12),
-                        Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
+                  builder: (ctx) {
+                    final sheetDark = Theme.of(ctx).brightness == Brightness.dark;
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 12),
+                          Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: sheetDark ? AppColors.borderDark : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Select Language',
-                          style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                        const SizedBox(height: 16),
-                        ListTile(
-                          leading:
-                              const Text('🇺🇸', style: TextStyle(fontSize: 24)),
-                          title: const Text('English'),
-                          trailing: currentLocale.languageCode == 'en'
-                              ? const Icon(Icons.check_circle,
-                                  color: AppColors.purple)
-                              : null,
-                          onTap: () {
-                            ref
-                                .read(localeProvider.notifier)
-                                .setLocale(const Locale('en'));
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                        ListTile(
-                          leading:
-                              const Text('🇪🇸', style: TextStyle(fontSize: 24)),
-                          title: const Text('Español'),
-                          trailing: currentLocale.languageCode == 'es'
-                              ? const Icon(Icons.check_circle,
-                                  color: AppColors.purple)
-                              : null,
-                          onTap: () {
-                            ref
-                                .read(localeProvider.notifier)
-                                .setLocale(const Locale('es'));
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Select Language',
+                            style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ListTile(
+                            leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
+                            title: const Text('English'),
+                            trailing: currentLocale.languageCode == 'en'
+                                ? const Icon(Icons.check_circle, color: AppColors.purple)
+                                : null,
+                            onTap: () {
+                              ref.read(localeProvider.notifier).setLocale(const Locale('en'));
+                              Navigator.pop(ctx);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Text('🇪🇸', style: TextStyle(fontSize: 24)),
+                            title: const Text('Español'),
+                            trailing: currentLocale.languageCode == 'es'
+                                ? const Icon(Icons.check_circle, color: AppColors.purple)
+                                : null,
+                            onTap: () {
+                              ref.read(localeProvider.notifier).setLocale(const Locale('es'));
+                              Navigator.pop(ctx);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),

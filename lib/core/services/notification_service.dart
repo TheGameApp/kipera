@@ -37,20 +37,34 @@ class NotificationService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      // Show notifications even when the app is in the foreground
+      defaultPresentAlert: true,
+      defaultPresentSound: true,
+      defaultPresentBadge: true,
+      defaultPresentBanner: true,
+      defaultPresentList: true,
     );
     const settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _plugin.initialize(settings);
+    await _plugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        debugPrint('🔔 [Notifications] tapped — payload: ${response.payload}');
+      },
+    );
     _initialized = true;
 
-    // Request permissions on iOS
-    await _plugin
+    // Request permissions on iOS and enable foreground presentation
+    final iosPlugin = _plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
-        >()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
+        >();
+    if (iosPlugin != null) {
+      await iosPlugin.requestPermissions(alert: true, badge: true, sound: true);
+      debugPrint('🔔 [Notifications] iOS permissions requested');
+    }
 
     // Request permissions on Android 13+
     await _plugin
@@ -88,7 +102,11 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
     );
-    const iosDetails = DarwinNotificationDetails();
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
     const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
@@ -153,7 +171,11 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
     await _plugin.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -170,6 +192,32 @@ class NotificationService {
     for (final n in pending) {
       debugPrint('  📋 id: ${n.id}, title: ${n.title}, body: ${n.body}');
     }
+  }
+
+  /// Fires a test notification immediately (for debugging).
+  Future<void> debugFireTestNotification() async {
+    debugPrint('🔔 [Notifications] firing test notification NOW');
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'daily_reminders',
+        'Daily Reminders',
+        channelDescription: 'Daily saving reminders for your goals',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    await _plugin.show(
+      99999,
+      'Kipera Test',
+      'If you see this, notifications are working!',
+      details,
+    );
+    debugPrint('✅ [Notifications] test notification fired');
   }
 
   Future<void> cancelAll() async {

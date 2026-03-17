@@ -33,4 +33,5 @@ Future<void> bootstrap() async {
 
   // Debug: list any pending notifications from previous sessions
   await notificationService.debugListPending();
+
 }

@@ -380,6 +380,7 @@ class GoalDetailScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
+        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -391,7 +392,7 @@ class GoalDetailScreen extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: isDark ? AppColors.borderDark : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -505,6 +506,9 @@ class GoalDetailScreen extends ConsumerWidget {
     );
     debugPrint('🔔 [GoalDetail] notification rescheduled to ${picked.hour}:${picked.minute}');
 
+    // Invalidate so the UI reflects the new time
+    ref.invalidate(goalDetailProvider(goal.id));
+
     if (context.mounted) {
       final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
       final minute = picked.minute.toString().padLeft(2, '0');
@@ -570,6 +574,7 @@ class GoalDetailScreen extends ConsumerWidget {
           updatedAt: Value(DateTime.now()),
         ),
       );
+      ref.invalidate(goalDetailProvider(goal.id));
       if (context.mounted) {
         KiperaSnackBar.show(
           context,
