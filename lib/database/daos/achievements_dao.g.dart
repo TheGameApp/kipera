@@ -1,0 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'achievements_dao.dart';
+
+// ignore_for_file: type=lint
+mixin _$AchievementsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AchievementsTable get achievements => attachedDatabase.achievements;
+  $UserAchievementsTable get userAchievements =>
+      attachedDatabase.userAchievements;
+}
