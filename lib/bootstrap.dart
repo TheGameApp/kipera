@@ -34,4 +34,8 @@ Future<void> bootstrap() async {
   // Debug: list any pending notifications from previous sessions
   await notificationService.debugListPending();
 
+  // Debug: fire immediate test notification to verify foreground display
+  // TODO: Remove after confirming foreground notifications work on iOS
+  await Future.delayed(const Duration(seconds: 3));
+  await notificationService.debugFireTestNotification();
 }
