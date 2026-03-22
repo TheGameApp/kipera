@@ -128,7 +128,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 data[e.date] =
                                     HeatmapUtils.intensityLevel(ratio);
                               }
-                              return HeatmapWidget(data: data);
+                              return HeatmapWidget(
+                                data: data,
+                                startDate: goal.startDate,
+                              );
                             },
                           ),
                           const SizedBox(height: 16),

@@ -37,9 +37,9 @@ final activeGoalsProvider = StreamProvider<List<SavingsGoal>>((ref) {
   return db.goalsDao.watchActiveGoals(user.id);
 });
 
-final goalDetailProvider = FutureProvider.family<SavingsGoal?, String>((ref, goalId) {
+final goalDetailProvider = StreamProvider.family<SavingsGoal?, String>((ref, goalId) {
   final db = ref.watch(databaseProvider);
-  return db.goalsDao.getGoalById(goalId);
+  return db.goalsDao.watchGoal(goalId);
 });
 
 final totalSavedForGoalProvider = FutureProvider.family<double, String>((ref, goalId) {

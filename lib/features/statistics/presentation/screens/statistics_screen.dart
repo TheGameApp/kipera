@@ -38,7 +38,10 @@ class StatisticsScreen extends ConsumerWidget {
                       children: [
                         const SizedBox(height: 80),
                         Icon(Icons.bar_chart,
-                            size: 64, color: AppColors.primaryContainer),
+                            size: 64,
+                            color: context.isDarkMode
+                                ? AppColors.primaryDark
+                                : AppColors.primaryContainer),
                         const SizedBox(height: 16),
                         Text(context.l10n.noGoalsYet,
                             style: context.textTheme.titleMedium),
@@ -94,7 +97,9 @@ class StatisticsScreen extends ConsumerWidget {
                               barRods: [
                                 BarChartRodData(
                                   toY: entry.value.targetAmount,
-                                  color: AppColors.primaryContainer,
+                                  color: context.isDarkMode
+                                      ? AppColors.primaryDark
+                                      : AppColors.primaryContainer,
                                   width: 20,
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(4),

@@ -31,7 +31,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   // Step 1
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay? _reminderTime;
 
   // Step 2
   SavingMethod _selectedMethod = SavingMethod.progressive;
@@ -106,6 +106,16 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         );
         return false;
       }
+      if (_reminderTime == null) {
+        setState(() {}); // trigger visual update on reminder field
+        KiperaSnackBar.show(
+          context,
+          message: 'Choose a daily reminder time to stay on track.',
+          type: KiperaSnackType.warning,
+          icon: Icons.notifications_outlined,
+        );
+        return false;
+      }
     }
     // Step 2 (method) always has a default selection, no validation needed.
     // Step 3 (appearance) always has defaults, no validation needed.
@@ -155,8 +165,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       baseAmount: double.tryParse(_baseAmountController.text),
       multiplierFactor: double.tryParse(_multiplierController.text),
       maxAmount: double.tryParse(_maxAmountController.text),
-      reminderHour: _reminderTime.hour,
-      reminderMinute: _reminderTime.minute,
+      reminderHour: _reminderTime?.hour,
+      reminderMinute: _reminderTime?.minute,
     );
   }
 
@@ -225,8 +235,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       final notifService = NotificationService();
       await notifService.scheduleDailyReminder(
         goalId: goalId,
-        hour: _reminderTime.hour,
-        minute: _reminderTime.minute,
+        hour: _reminderTime!.hour,
+        minute: _reminderTime!.minute,
         title: 'Time to save!',
         body: 'Don\'t forget your "$name" goal today.',
       );
@@ -258,10 +268,12 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   }
 
   Future<void> _pickReminderTime() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     final picked = await showTimePicker(
       context: context,
-      initialTime: _reminderTime,
+      initialTime: _reminderTime ?? const TimeOfDay(hour: 8, minute: 0),
     );
+    FocusManager.instance.primaryFocus?.unfocus();
     if (picked != null) {
       setState(() => _reminderTime = picked);
     }
@@ -317,7 +329,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                             height: 1.5,
                             color: i < _currentStep
                                 ? AppColors.primary
-                                : AppColors.borderLight,
+                                : (context.isDarkMode
+                                    ? AppColors.borderDark
+                                    : AppColors.borderLight),
                           ),
                         ),
                     ],
@@ -404,7 +418,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         border: Border.all(
           color: isCompleted || isCurrent
               ? AppColors.primary
-              : AppColors.borderLight,
+              : (context.isDarkMode
+                  ? AppColors.borderDark
+                  : AppColors.borderLight),
           width: isCurrent ? 2 : 1.5,
         ),
       ),
@@ -475,11 +491,12 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           ),
           const SizedBox(height: 24),
           // Reminder Time
-          _buildRequiredLabel('Reminder Time', required: false),
+          _buildRequiredLabel('Reminder Time'),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _pickReminderTime,
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: context.isDarkMode
@@ -487,29 +504,55 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                     : AppColors.inputBgLight,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: context.isDarkMode
-                      ? AppColors.borderDark
-                      : AppColors.borderLight,
+                  color: _reminderTime == null
+                      ? AppColors.warning.withValues(alpha: 0.7)
+                      : AppColors.primary,
+                  width: 1.5,
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.access_time_rounded,
-                    color: AppColors.primary,
+                    Icons.notifications_outlined,
+                    color: _reminderTime != null
+                        ? AppColors.primary
+                        : AppColors.warning,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    _formatTime(_reminderTime),
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _reminderTime != null
+                              ? _formatTime(_reminderTime!)
+                              : 'Tap to set a reminder time',
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: _reminderTime != null
+                                ? null
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                        if (_reminderTime == null)
+                          Text(
+                            'Required — keep yourself on track',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: AppColors.warning.withValues(alpha: 0.8),
+                              fontSize: 11,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
                   Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary,
+                    _reminderTime != null
+                        ? Icons.check_circle_outline
+                        : Icons.chevron_right,
+                    color: _reminderTime != null
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
                     size: 20,
                   ),
                 ],
@@ -627,13 +670,17 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _selectedMethod == method
-                  ? AppColors.primaryContainer
+                  ? (context.isDarkMode
+                      ? AppColors.primaryContainer.withValues(alpha: 0.25)
+                      : AppColors.primaryContainer)
                   : context.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _selectedMethod == method
                     ? AppColors.primary
-                    : Colors.grey.shade300,
+                    : (context.isDarkMode
+                        ? AppColors.borderDark
+                        : AppColors.borderLight),
                 width: _selectedMethod == method ? 2 : 1,
               ),
             ),
@@ -747,9 +794,12 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
+          GridView.count(
+            crossAxisCount: 5,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             children: _icons.map((iconName) {
               final isSelected = _selectedIcon == iconName;
               return GestureDetector(
@@ -758,16 +808,20 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                   setState(() => _selectedIcon = iconName);
                 },
                 child: Container(
-                  width: 52,
-                  height: 52,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primaryContainer
+                        ? (context.isDarkMode
+                            ? AppColors.primaryContainer.withValues(alpha: 0.25)
+                            : AppColors.primaryContainer)
                         : context.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: isSelected
                         ? Border.all(color: AppColors.primary, width: 2)
-                        : Border.all(color: Colors.grey.shade300),
+                        : Border.all(
+                            color: context.isDarkMode
+                                ? AppColors.borderDark
+                                : AppColors.borderLight,
+                          ),
                   ),
                   child: Icon(
                     _iconFromName(iconName),
@@ -856,18 +910,20 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.access_time_rounded,
-                size: 14,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                _formatTime(_reminderTime),
-                style: context.textTheme.bodySmall?.copyWith(
+              if (_reminderTime != null) ...[
+                Icon(
+                  Icons.access_time_rounded,
+                  size: 14,
                   color: AppColors.textSecondary,
                 ),
-              ),
+                const SizedBox(width: 4),
+                Text(
+                  _formatTime(_reminderTime!),
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

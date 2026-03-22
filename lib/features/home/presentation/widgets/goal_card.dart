@@ -10,14 +10,12 @@ import '../providers/home_provider.dart';
 
 class GoalCard extends ConsumerWidget {
   final SavingsGoal goal;
-  final int colorIndex;
   final VoidCallback onTap;
   final VoidCallback onCheckIn;
 
   const GoalCard({
     super.key,
     required this.goal,
-    required this.colorIndex,
     required this.onTap,
     required this.onCheckIn,
   });
@@ -25,11 +23,15 @@ class GoalCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final totalSavedAsync = ref.watch(totalSavedForGoalProvider(goal.id));
-    final bgColor = context.isDarkMode
-        ? Theme.of(context).extension<dynamic>() != null
-            ? AppColors.goalColors[colorIndex].withValues(alpha: 0.15)
-            : Colors.white.withValues(alpha: 0.05)
-        : AppColors.goalColors[colorIndex];
+    final goalColor = Color(int.parse(goal.colorHex, radix: 16));
+    final isDark = context.isDarkMode;
+    final bgColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : goalColor;
+    final iconBgColor = isDark
+        ? goalColor.withValues(alpha: 0.28)
+        : Colors.white.withValues(alpha: 0.7);
+    final iconColor = isDark ? goalColor : AppColors.primary;
 
     return GestureDetector(
       onTap: onTap,
@@ -38,6 +40,12 @@ class GoalCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
+          border: isDark
+              ? Border.all(
+                  color: goalColor.withValues(alpha: 0.18),
+                  width: 1,
+                )
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,12 +59,12 @@ class GoalCard extends ConsumerWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: iconBgColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         _getIconData(goal.iconName),
-                        color: AppColors.primary,
+                        color: iconColor,
                         size: 20,
                       ),
                     ),

@@ -103,6 +103,34 @@ class GoalDetailScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+                      if (_reminderTimeText(goal) != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.notifications_outlined,
+                                size: 13,
+                                color: AppColors.primary.withValues(alpha: 0.75),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _reminderTimeText(goal)!,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.primary.withValues(alpha: 0.75),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -315,7 +343,10 @@ class GoalDetailScreen extends ConsumerWidget {
                       heatmapData[entry.date] =
                           HeatmapUtils.intensityLevel(ratio);
                     }
-                    return HeatmapWidget(data: heatmapData);
+                    return HeatmapWidget(
+                      data: heatmapData,
+                      startDate: goal.startDate,
+                    );
                   },
                 ),
                 const SizedBox(height: 24),
@@ -371,6 +402,22 @@ class GoalDetailScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  String? _reminderTimeText(SavingsGoal goal) {
+    try {
+      final config = MethodConfig.fromJson(
+        jsonDecode(goal.methodConfig) as Map<String, dynamic>,
+      );
+      if (config.reminderHour != null && config.reminderMinute != null) {
+        final time = TimeOfDay(hour: config.reminderHour!, minute: config.reminderMinute!);
+        final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+        final minute = time.minute.toString().padLeft(2, '0');
+        final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+        return 'Daily reminder at $hour:$minute $period';
+      }
+    } catch (_) {}
+    return null;
   }
 
   void _showEditSheet(BuildContext context, WidgetRef ref, SavingsGoal goal) {
@@ -506,9 +553,6 @@ class GoalDetailScreen extends ConsumerWidget {
     );
     debugPrint('🔔 [GoalDetail] notification rescheduled to ${picked.hour}:${picked.minute}');
 
-    // Invalidate so the UI reflects the new time
-    ref.invalidate(goalDetailProvider(goal.id));
-
     if (context.mounted) {
       final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
       final minute = picked.minute.toString().padLeft(2, '0');
@@ -527,43 +571,10 @@ class GoalDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     SavingsGoal goal,
   ) async {
-    final controller = TextEditingController(text: goal.name);
-
     final newName = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text('Edit Goal Name'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'Goal name',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final text = controller.text.trim();
-                if (text.isNotEmpty) {
-                  Navigator.pop(dialogContext, text);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+      builder: (dialogContext) => _EditGoalNameDialog(initialName: goal.name),
     );
-
-    controller.dispose();
 
     if (newName != null && newName != goal.name) {
       final db = ref.read(databaseProvider);
@@ -574,7 +585,6 @@ class GoalDetailScreen extends ConsumerWidget {
           updatedAt: Value(DateTime.now()),
         ),
       );
-      ref.invalidate(goalDetailProvider(goal.id));
       if (context.mounted) {
         KiperaSnackBar.show(
           context,
@@ -633,6 +643,63 @@ class GoalDetailScreen extends ConsumerWidget {
         context.pop();
       }
     }
+  }
+}
+
+class _EditGoalNameDialog extends StatefulWidget {
+  final String initialName;
+
+  const _EditGoalNameDialog({required this.initialName});
+
+  @override
+  State<_EditGoalNameDialog> createState() => _EditGoalNameDialogState();
+}
+
+class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: const Text('Edit Goal Name'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(
+          hintText: 'Goal name',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            final text = _controller.text.trim();
+            if (text.isNotEmpty) {
+              Navigator.pop(context, text);
+            }
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }
 

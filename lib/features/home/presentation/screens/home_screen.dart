@@ -118,7 +118,6 @@ class HomeScreen extends ConsumerWidget {
                     final goal = goals[index];
                     return GoalCard(
                       goal: goal,
-                      colorIndex: index % AppColors.goalColors.length,
                       onTap: () {
                         debugPrint('📱 [HomeScreen] goal card tapped — goalId: ${goal.id}, name: ${goal.name}');
                         context.push('/goal/${goal.id}');

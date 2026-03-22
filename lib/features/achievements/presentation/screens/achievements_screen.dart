@@ -83,7 +83,11 @@ class _AchievementCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: isUnlocked
             ? Border.all(color: AppColors.primary, width: 2)
-            : Border.all(color: Colors.grey.shade300),
+            : Border.all(
+                color: context.isDarkMode
+                    ? AppColors.borderDark
+                    : AppColors.borderLight,
+              ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -91,14 +95,18 @@ class _AchievementCard extends StatelessWidget {
           Icon(
             _iconFromName(achievement.iconName),
             size: 32,
-            color: isUnlocked ? AppColors.primary : Colors.grey.shade400,
+            color: isUnlocked
+                ? AppColors.primary
+                : (context.isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400),
           ),
           const SizedBox(height: 8),
           Text(
             achievement.title,
             style: context.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: isUnlocked ? null : Colors.grey.shade400,
+              color: isUnlocked
+                  ? null
+                  : (context.isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400),
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -106,7 +114,8 @@ class _AchievementCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           if (!isUnlocked)
-            Icon(Icons.lock, size: 14, color: Colors.grey.shade400),
+            Icon(Icons.lock, size: 14,
+                color: context.isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400),
         ],
       ),
     );
