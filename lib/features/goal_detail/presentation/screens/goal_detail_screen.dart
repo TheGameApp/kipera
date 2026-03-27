@@ -37,7 +37,9 @@ class GoalDetailScreen extends ConsumerWidget {
             height: 52,
             child: ElevatedButton(
               onPressed: () {
-                debugPrint('[GoalDetail] check-in FAB tapped — goalId: $goalId');
+                debugPrint(
+                  '[GoalDetail] check-in FAB tapped — goalId: $goalId',
+                );
                 context.push('/check-in/$goalId');
               },
               style: ElevatedButton.styleFrom(
@@ -68,336 +70,381 @@ class GoalDetailScreen extends ConsumerWidget {
           if (goal == null) return const Center(child: Text('Goal not found'));
 
           return SafeArea(
-            child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top bar with back button and edit icon
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const KiperaBackButton(),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => _showEditSheet(context, ref, goal),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Header
-                Center(
-                  child: Column(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 4, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        goal.name,
-                        style: context.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const KiperaBackButton(),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _showEditSheet(context, ref, goal),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        goal.method.replaceAll('_', ' ').toUpperCase(),
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (_reminderTimeText(goal) != null) ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.notifications_outlined,
-                                size: 13,
-                                color: AppColors.primary.withValues(alpha: 0.75),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                _reminderTimeText(goal)!,
-                                style: context.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.primary.withValues(alpha: 0.75),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Progress Ring
-                totalSavedAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (totalSaved) {
-                    final progress = goal.targetAmount > 0
-                        ? (totalSaved / goal.targetAmount).clamp(0.0, 1.0)
-                        : 0.0;
-
-                    return Center(
-                      child: ProgressRing(
-                        progress: progress,
-                        size: 180,
-                        strokeWidth: 14,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              totalSaved.toCurrency(),
-                              style: context.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                goal.name,
+                                style: context.textTheme.headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                            ),
-                            Text(
-                              'of ${goal.targetAmount.toCurrency()}',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Days remaining banner
-                entriesAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (entries) {
-                    final method = SavingMethod.values.firstWhere(
-                      (m) => m.name == goal.method,
-                      orElse: () => SavingMethod.progressive,
-                    );
-                    final config = MethodConfig.fromJson(
-                      jsonDecode(goal.methodConfig) as Map<String, dynamic>,
-                    );
-                    final totalEstimatedDays = SavingCalculator.estimatedDays(
-                      method: method,
-                      targetAmount: goal.targetAmount,
-                      config: config,
-                    );
-                    final completedDays = entries.where((e) => e.isCompleted).length;
-                    final daysLeft = (totalEstimatedDays - completedDays).clamp(0, totalEstimatedDays);
-
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.purple.withValues(alpha: 0.15),
-                            AppColors.pink.withValues(alpha: 0.1),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.purple.withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            daysLeft == 0
-                                ? Icons.emoji_events_rounded
-                                : Icons.rocket_launch_rounded,
-                            color: AppColors.purple,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                RichText(
-                                  text: TextSpan(
-                                    style: context.textTheme.bodyMedium?.copyWith(
-                                      color: context.isDarkMode
-                                          ? AppColors.textDark
-                                          : AppColors.textLight,
-                                    ),
-                                    children: daysLeft > 0
-                                        ? [
-                                            TextSpan(
-                                              text: '$daysLeft ',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                                color: AppColors.purple,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: daysLeft == 1
-                                                  ? 'day left to reach your goal'
-                                                  : 'days left to reach your goal',
-                                            ),
-                                          ]
-                                        : [
-                                            TextSpan(
-                                              text: 'Goal reached! ',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.purple,
-                                              ),
-                                            ),
-                                            const TextSpan(text: 'Congratulations!'),
-                                          ],
-                                  ),
+                              const SizedBox(height: 4),
+                              Text(
+                                goal.method.replaceAll('_', ' ').toUpperCase(),
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Day $completedDays of $totalEstimatedDays',
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondary,
+                              ),
+                              if (_reminderTimeText(goal) != null) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.08,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.notifications_outlined,
+                                        size: 13,
+                                        color: AppColors.primary.withValues(
+                                          alpha: 0.75,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        _reminderTimeText(goal)!,
+                                        style: context.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: AppColors.primary
+                                                  .withValues(alpha: 0.75),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Stats Row
-                entriesAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (entries) {
-                    final completedDates = entries
-                        .where((e) => e.isCompleted)
-                        .map((e) => e.date)
-                        .toList();
-                    final streak =
-                        HeatmapUtils.calculateStreak(completedDates);
-                    final totalDays = entries.length;
-                    final completedDays =
-                        entries.where((e) => e.isCompleted).length;
-
-                    return Row(
-                      children: [
-                        _StatCard(
-                          icon: Icons.local_fire_department,
-                          label: context.l10n.streak,
-                          value: '$streak',
-                          color: Colors.orange,
                         ),
-                        const SizedBox(width: 12),
-                        _StatCard(
-                          icon: Icons.calendar_today,
-                          label: context.l10n.days,
-                          value: '$completedDays/$totalDays',
-                          color: AppColors.info,
-                        ),
-                        const SizedBox(width: 12),
-                        _StatCard(
-                          icon: Icons.trending_up,
-                          label: context.l10n.remaining,
-                          value: totalSavedAsync.whenOrNull(
-                                data: (saved) =>
-                                    (goal.targetAmount - saved).toCurrency(),
-                              ) ??
-                              '...',
-                          color: AppColors.success,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                // Heatmap
-                Text(
-                  context.l10n.progress,
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                entriesAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (entries) {
-                    final heatmapData = <DateTime, int>{};
-                    for (final entry in entries) {
-                      final ratio = entry.expectedAmount > 0
-                          ? entry.actualAmount / entry.expectedAmount
-                          : 0.0;
-                      heatmapData[entry.date] =
-                          HeatmapUtils.intensityLevel(ratio);
-                    }
-                    return HeatmapWidget(
-                      data: heatmapData,
-                      startDate: goal.startDate,
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
+                        // Progress Ring
+                        totalSavedAsync.when(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (totalSaved) {
+                            final progress = goal.targetAmount > 0
+                                ? (totalSaved / goal.targetAmount).clamp(
+                                    0.0,
+                                    1.0,
+                                  )
+                                : 0.0;
 
-                // All activity
-                Text(
-                  'Activity',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                entriesAsync.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (entries) {
-                    final recent = entries.reversed.toList();
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: recent.length,
-                      itemBuilder: (context, index) {
-                        final entry = recent[index];
-                        return ListTile(
-                          leading: Icon(
-                            entry.isCompleted
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: entry.isCompleted
-                                ? AppColors.success
-                                : AppColors.textSecondary,
-                          ),
-                          title: Text(entry.actualAmount.toCurrency()),
-                          subtitle: Text(
-                            '${entry.date.month}/${entry.date.day}/${entry.date.year}',
-                          ),
-                          trailing: entry.isCompleted
-                              ? null
-                              : Text(
-                                  'Expected: ${entry.expectedAmount.toCurrency()}',
-                                  style: context.textTheme.bodySmall,
+                            return Center(
+                              child: ProgressRing(
+                                progress: progress,
+                                size: 180,
+                                strokeWidth: 14,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      totalSaved.toCurrency(),
+                                      style: context.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    Text(
+                                      'of ${goal.targetAmount.toCurrency()}',
+                                      style: context.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: AppColors.textSecondary,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                        );
-                      },
-                    );
-                  },
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Days remaining banner
+                        entriesAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (entries) {
+                            final method = SavingMethod.values.firstWhere(
+                              (m) => m.name == goal.method,
+                              orElse: () => SavingMethod.progressive,
+                            );
+                            final config = MethodConfig.fromJson(
+                              jsonDecode(goal.methodConfig)
+                                  as Map<String, dynamic>,
+                            );
+                            final totalEstimatedDays =
+                                SavingCalculator.estimatedDays(
+                                  method: method,
+                                  targetAmount: goal.targetAmount,
+                                  config: config,
+                                );
+                            final completedDays = entries
+                                .where((e) => e.isCompleted)
+                                .length;
+                            final daysLeft =
+                                (totalEstimatedDays - completedDays).clamp(
+                                  0,
+                                  totalEstimatedDays,
+                                );
+
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.purple.withValues(alpha: 0.15),
+                                    AppColors.pink.withValues(alpha: 0.1),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.purple.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    daysLeft == 0
+                                        ? Icons.emoji_events_rounded
+                                        : Icons.rocket_launch_rounded,
+                                    color: AppColors.purple,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            style: context.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: context.isDarkMode
+                                                      ? AppColors.textDark
+                                                      : AppColors.textLight,
+                                                ),
+                                            children: daysLeft > 0
+                                                ? [
+                                                    TextSpan(
+                                                      text: '$daysLeft ',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20,
+                                                        color: AppColors.purple,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text: daysLeft == 1
+                                                          ? 'day left to reach your goal'
+                                                          : 'days left to reach your goal',
+                                                    ),
+                                                  ]
+                                                : [
+                                                    TextSpan(
+                                                      text: 'Goal reached! ',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: AppColors.purple,
+                                                      ),
+                                                    ),
+                                                    const TextSpan(
+                                                      text: 'Congratulations!',
+                                                    ),
+                                                  ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Day $completedDays of $totalEstimatedDays',
+                                          style: context.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Stats Row
+                        entriesAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (entries) {
+                            final completedDates = entries
+                                .where((e) => e.isCompleted)
+                                .map((e) => e.date)
+                                .toList();
+                            final streak = HeatmapUtils.calculateStreak(
+                              completedDates,
+                            );
+                            final totalDays = entries.length;
+                            final completedDays = entries
+                                .where((e) => e.isCompleted)
+                                .length;
+
+                            return Row(
+                              children: [
+                                _StatCard(
+                                  icon: Icons.local_fire_department,
+                                  label: context.l10n.streak,
+                                  value: '$streak',
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 12),
+                                _StatCard(
+                                  icon: Icons.calendar_today,
+                                  label: context.l10n.days,
+                                  value: '$completedDays/$totalDays',
+                                  color: AppColors.info,
+                                ),
+                                const SizedBox(width: 12),
+                                _StatCard(
+                                  icon: Icons.trending_up,
+                                  label: context.l10n.remaining,
+                                  value:
+                                      totalSavedAsync.whenOrNull(
+                                        data: (saved) =>
+                                            (goal.targetAmount - saved)
+                                                .toCurrency(),
+                                      ) ??
+                                      '...',
+                                  color: AppColors.success,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Heatmap
+                        Text(
+                          context.l10n.progress,
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        entriesAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (entries) {
+                            final heatmapData = <DateTime, int>{};
+                            for (final entry in entries) {
+                              final ratio = entry.expectedAmount > 0
+                                  ? entry.actualAmount / entry.expectedAmount
+                                  : 0.0;
+                              heatmapData[entry.date] =
+                                  HeatmapUtils.intensityLevel(ratio);
+                            }
+                            return HeatmapWidget(
+                              data: heatmapData,
+                              startDate: goal.startDate,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // All activity
+                        Text(
+                          'Activity',
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        entriesAsync.when(
+                          loading: () => const CircularProgressIndicator(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (entries) {
+                            final recent = entries.reversed.toList();
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: recent.length,
+                              itemBuilder: (context, index) {
+                                final entry = recent[index];
+                                return ListTile(
+                                  leading: Icon(
+                                    entry.isCompleted
+                                        ? Icons.check_circle
+                                        : Icons.circle_outlined,
+                                    color: entry.isCompleted
+                                        ? AppColors.success
+                                        : AppColors.textSecondary,
+                                  ),
+                                  title: Text(entry.actualAmount.toCurrency()),
+                                  subtitle: Text(
+                                    '${entry.date.month}/${entry.date.day}/${entry.date.year}',
+                                  ),
+                                  trailing: entry.isCompleted
+                                      ? null
+                                      : Text(
+                                          'Expected: ${entry.expectedAmount.toCurrency()}',
+                                          style: context.textTheme.bodySmall,
+                                        ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 100),
               ],
             ),
-          ),
           );
         },
       ),
@@ -410,7 +457,10 @@ class GoalDetailScreen extends ConsumerWidget {
         jsonDecode(goal.methodConfig) as Map<String, dynamic>,
       );
       if (config.reminderHour != null && config.reminderMinute != null) {
-        final time = TimeOfDay(hour: config.reminderHour!, minute: config.reminderMinute!);
+        final time = TimeOfDay(
+          hour: config.reminderHour!,
+          minute: config.reminderMinute!,
+        );
         final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
         final minute = time.minute.toString().padLeft(2, '0');
         final period = time.period == DayPeriod.am ? 'AM' : 'PM';
@@ -445,7 +495,10 @@ class GoalDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.access_time_rounded, color: AppColors.primary),
+                  leading: const Icon(
+                    Icons.access_time_rounded,
+                    color: AppColors.primary,
+                  ),
                   title: const Text('Edit Reminder Time'),
                   subtitle: Text(
                     _currentReminderText(goal),
@@ -457,7 +510,10 @@ class GoalDetailScreen extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                  leading: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary,
+                  ),
                   title: const Text('Edit Goal Name'),
                   subtitle: Text(
                     goal.name,
@@ -498,7 +554,10 @@ class GoalDetailScreen extends ConsumerWidget {
         jsonDecode(goal.methodConfig) as Map<String, dynamic>,
       );
       if (config.reminderHour != null && config.reminderMinute != null) {
-        final time = TimeOfDay(hour: config.reminderHour!, minute: config.reminderMinute!);
+        final time = TimeOfDay(
+          hour: config.reminderHour!,
+          minute: config.reminderMinute!,
+        );
         final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
         final minute = time.minute.toString().padLeft(2, '0');
         final period = time.period == DayPeriod.am ? 'AM' : 'PM';
@@ -519,14 +578,14 @@ class GoalDetailScreen extends ConsumerWidget {
         jsonDecode(goal.methodConfig) as Map<String, dynamic>,
       );
       if (config.reminderHour != null && config.reminderMinute != null) {
-        initial = TimeOfDay(hour: config.reminderHour!, minute: config.reminderMinute!);
+        initial = TimeOfDay(
+          hour: config.reminderHour!,
+          minute: config.reminderMinute!,
+        );
       }
     } catch (_) {}
 
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-    );
+    final picked = await showTimePicker(context: context, initialTime: initial);
     if (picked == null) return;
 
     final configJson = jsonDecode(goal.methodConfig) as Map<String, dynamic>;
@@ -551,7 +610,9 @@ class GoalDetailScreen extends ConsumerWidget {
       title: 'Time to save!',
       body: 'Don\'t forget your "${goal.name}" goal today.',
     );
-    debugPrint('🔔 [GoalDetail] notification rescheduled to ${picked.hour}:${picked.minute}');
+    debugPrint(
+      '🔔 [GoalDetail] notification rescheduled to ${picked.hour}:${picked.minute}',
+    );
 
     if (context.mounted) {
       final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
@@ -632,7 +693,9 @@ class GoalDetailScreen extends ConsumerWidget {
       await db.goalsDao.deleteGoal(goal.id);
       // Cancel the notification for this goal
       await NotificationService().cancelGoalReminder(goal.id);
-      debugPrint('🔔 [GoalDetail] notification cancelled for deleted goal: ${goal.id}');
+      debugPrint(
+        '🔔 [GoalDetail] notification cancelled for deleted goal: ${goal.id}',
+      );
       if (context.mounted) {
         KiperaSnackBar.show(
           context,
@@ -673,16 +736,12 @@ class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Text('Edit Goal Name'),
       content: TextField(
         controller: _controller,
         autofocus: true,
-        decoration: const InputDecoration(
-          hintText: 'Goal name',
-        ),
+        decoration: const InputDecoration(hintText: 'Goal name'),
       ),
       actions: [
         TextButton(
