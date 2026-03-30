@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../invitations/presentation/providers/invitations_provider.dart';
 
-class HomeShellScreen extends StatelessWidget {
+class HomeShellScreen extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const HomeShellScreen({super.key, required this.navigationShell});
 
-  void _onNavTap(int index) {
+  void _onNavTap(BuildContext context, int index, int pendingCount) {
     debugPrint('🧭 [HomeShell] tab changed — index: $index');
     navigationShell.goBranch(
       index,
@@ -17,9 +19,14 @@ class HomeShellScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = navigationShell.currentIndex;
     final isDark = context.isDarkMode;
+    final pendingCount = ref.watch(pendingInvitationCountProvider);
+
+    if (pendingCount > 0) {
+      debugPrint('🔔 [HomeShell] Pending invitations badge — count: $pendingCount');
+    }
 
     return Scaffold(
       body: navigationShell,
@@ -67,15 +74,16 @@ class HomeShellScreen extends StatelessWidget {
                 label: context.l10n.home,
                 isSelected: currentIndex == 0,
                 isDark: isDark,
-                onTap: () => _onNavTap(0),
+                onTap: () => _onNavTap(context, 0, pendingCount),
               ),
-              _NavBarItem(
-                icon: Icons.bar_chart_outlined,
-                activeIcon: Icons.bar_chart_rounded,
-                label: context.l10n.statistics,
+              _NavBarItemWithBadge(
+                icon: Icons.notifications_none_rounded,
+                activeIcon: Icons.notifications_rounded,
+                label: 'Alerts',
                 isSelected: currentIndex == 1,
                 isDark: isDark,
-                onTap: () => _onNavTap(1),
+                badgeCount: pendingCount,
+                onTap: () => _onNavTap(context, 1, pendingCount),
               ),
               const SizedBox(width: 56), // Space for FAB
               _NavBarItem(
@@ -84,7 +92,7 @@ class HomeShellScreen extends StatelessWidget {
                 label: context.l10n.calendar,
                 isSelected: currentIndex == 2,
                 isDark: isDark,
-                onTap: () => _onNavTap(2),
+                onTap: () => _onNavTap(context, 2, pendingCount),
               ),
               _NavBarItem(
                 icon: Icons.person_outline_rounded,
@@ -92,7 +100,7 @@ class HomeShellScreen extends StatelessWidget {
                 label: context.l10n.profile,
                 isSelected: currentIndex == 3,
                 isDark: isDark,
-                onTap: () => _onNavTap(3),
+                onTap: () => _onNavTap(context, 3, pendingCount),
               ),
             ],
           ),
@@ -147,6 +155,102 @@ class _NavBarItem extends StatelessWidget {
                 color: isSelected ? activeColor : inactiveColor,
                 size: 24,
               ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? activeColor : inactiveColor,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontFamily: 'ClashDisplay',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Nav bar item con badge circular para invitaciones pendientes
+class _NavBarItemWithBadge extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isSelected;
+  final bool isDark;
+  final int badgeCount;
+  final VoidCallback onTap;
+
+  const _NavBarItemWithBadge({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isSelected,
+    required this.isDark,
+    required this.badgeCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = badgeCount > 0 ? AppColors.pink : AppColors.purple;
+    final inactiveColor = isDark
+        ? AppColors.textSecondary
+        : AppColors.textSecondary;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: isSelected
+                      ? BoxDecoration(
+                          color: (badgeCount > 0
+                                  ? AppColors.pink
+                                  : AppColors.purpleLight)
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        )
+                      : null,
+                  child: Icon(
+                    isSelected ? activeIcon : icon,
+                    color: isSelected ? activeColor : inactiveColor,
+                    size: 24,
+                  ),
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    top: -4,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.pink,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        badgeCount > 9 ? '9+' : '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 2),
             Text(

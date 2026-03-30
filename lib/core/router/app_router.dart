@@ -15,6 +15,7 @@ import '../../features/goal_detail/presentation/screens/goal_detail_screen.dart'
 import '../../features/check_in/presentation/screens/check_in_screen.dart';
 import '../../features/achievements/presentation/screens/achievements_screen.dart';
 import '../../features/premium/presentation/screens/premium_screen.dart';
+import '../../features/invitations/presentation/screens/invitations_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
 
@@ -104,8 +105,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/statistics',
-                builder: (context, state) => const StatisticsScreen(),
+                path: '/invitations',
+                builder: (context, state) => const InvitationsScreen(),
               ),
             ],
           ),
@@ -155,6 +156,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/premium',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const PremiumScreen(),
+      ),
+      GoRoute(
+        path: '/statistics',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StatisticsScreen(),
+      ),
+      GoRoute(
+        path: '/invite',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          // Future: use state.uri.queryParameters['id'] to auto-highlight/accept
+          return const InvitationsScreen();
+        },
       ),
     ],
   );

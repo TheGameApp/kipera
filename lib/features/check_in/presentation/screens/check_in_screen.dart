@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/saving_methods.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/extensions/num_extensions.dart';
+import '../../../../core/widgets/currency_text.dart';
 import '../../../../core/widgets/kipera_snackbar.dart';
 import '../../../../core/utils/achievement_checker.dart';
 import '../../../../core/utils/heatmap_utils.dart';
@@ -54,10 +54,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final entries = await db.entriesDao.getEntriesForGoal(widget.goalId);
 
-    // Check if already checked in today
+    // Couple-aware check: verify this specific user hasn't checked in today
     final alreadyToday = entries.any((e) {
       final eDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eDate == today;
+      return eDate == today && (e.userId == null || e.userId == user.id);
     });
     if (alreadyToday) {
       debugPrint('⚠️ [CheckIn] already checked in today — skipping');
@@ -94,6 +94,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     await db.entriesDao.upsertEntry(SavingEntriesCompanion(
       id: Value(const Uuid().v4()),
       goalId: Value(widget.goalId),
+      userId: Value(user.id),
       date: Value(today),
       expectedAmount: Value(amount),
       actualAmount: Value(amount),
@@ -196,9 +197,15 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
               color: goalCompleted ? Colors.amber : AppColors.success,
             ),
             const SizedBox(height: 16),
-            Text(
-              '${context.l10n.todaysSaving}: ${amount.toCurrency()}',
-              style: context.textTheme.titleMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('${context.l10n.todaysSaving}: '),
+                CurrencyText(
+                  amount: amount,
+                  style: context.textTheme.titleMedium,
+                ),
+              ],
             ),
             if (streak > 1) ...[
               const SizedBox(height: 8),
@@ -300,10 +307,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
 
                         return Column(
                           children: [
-                            Text(
-                              todayAmount.toCurrency(),
-                              style:
-                                  context.textTheme.displaySmall?.copyWith(
+                            CurrencyText(
+                              amount: todayAmount,
+                              style: context.textTheme.displaySmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
@@ -316,9 +322,26 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              '${context.l10n.totalSaved}: ${totalSaved.toCurrency()} / ${goal.targetAmount.toCurrency()}',
-                              style: context.textTheme.bodyLarge,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${context.l10n.totalSaved}: ',
+                                  style: context.textTheme.bodyLarge,
+                                ),
+                                CurrencyText(
+                                  amount: totalSaved,
+                                  style: context.textTheme.bodyLarge,
+                                ),
+                                Text(
+                                  ' / ',
+                                  style: context.textTheme.bodyLarge,
+                                ),
+                                CurrencyText(
+                                  amount: goal.targetAmount,
+                                  style: context.textTheme.bodyLarge,
+                                ),
+                              ],
                             ),
                           ],
                         );

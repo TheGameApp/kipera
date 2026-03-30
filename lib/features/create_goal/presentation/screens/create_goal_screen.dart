@@ -11,9 +11,11 @@ import '../../../../core/utils/saving_calculator.dart';
 import '../../../../core/widgets/kipera_back_button.dart';
 import '../../../../core/widgets/kipera_snackbar.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/providers/sync_provider.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+import '../../../invitations/presentation/providers/invitations_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 
 class CreateGoalScreen extends ConsumerStatefulWidget {
@@ -32,6 +34,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
   TimeOfDay? _reminderTime;
+  bool _isCoupleGoal = false;
+  final _partnerEmailController = TextEditingController();
 
   // Step 2
   SavingMethod _selectedMethod = SavingMethod.progressive;
@@ -69,6 +73,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
     _baseAmountController.dispose();
     _multiplierController.dispose();
     _maxAmountController.dispose();
+    _partnerEmailController.dispose();
     super.dispose();
   }
 
@@ -115,6 +120,18 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           icon: Icons.notifications_outlined,
         );
         return false;
+      }
+      if (_isCoupleGoal) {
+        final email = _partnerEmailController.text.trim();
+        if (email.isEmpty || !email.contains('@')) {
+          KiperaSnackBar.show(
+            context,
+            message: 'Enter a valid email address for your partner.',
+            type: KiperaSnackType.warning,
+            icon: Icons.email_outlined,
+          );
+          return false;
+        }
       }
     }
     // Step 2 (method) always has a default selection, no validation needed.
@@ -224,6 +241,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           iconName: _selectedIcon,
           startDate: now,
           endDate: Value(days > 0 ? now.add(Duration(days: days)) : null),
+          isCoupleGoal: Value(_isCoupleGoal),
           createdAt: now,
           updatedAt: now,
         ),
@@ -241,6 +259,27 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         body: 'Don\'t forget your "$name" goal today.',
       );
       await notifService.debugListPending();
+
+      // Trigger sync immediately to ensure the goal exists in Supabase
+      // before we try to insert an invitation that references it.
+      await ref.read(syncServiceProvider).syncAll();
+
+      // Si es meta de pareja, enviar invitación al partner
+      if (_isCoupleGoal) {
+        final partnerEmail = _partnerEmailController.text.trim();
+        try {
+          final invService = ref.read(invitationServiceProvider);
+          await invService.sendInvitation(
+            goalId: goalId,
+            inviterUserId: user.id,
+            inviteeEmail: partnerEmail,
+          );
+          debugPrint('✅ [CreateGoal] invitation sent to $partnerEmail');
+        } catch (e) {
+          debugPrint('⚠️ [CreateGoal] invitation send failed but goal was created: $e');
+          // No se bloquea la creación del goal si la invitación falla
+        }
+      }
 
       if (mounted) {
         KiperaSnackBar.show(
@@ -559,6 +598,93 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+
+          // ─── Couple Goal Toggle ───────────────────────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isCoupleGoal
+                  ? AppColors.pink.withValues(alpha: context.isDarkMode ? 0.15 : 0.08)
+                  : (context.isDarkMode ? AppColors.inputBgDark : AppColors.inputBgLight),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _isCoupleGoal ? AppColors.pink : (context.isDarkMode ? AppColors.borderDark : AppColors.borderLight),
+                width: _isCoupleGoal ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text('❤️', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Couple Goal',
+                            style: context.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Save together with your partner',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _isCoupleGoal,
+                      onChanged: (val) => setState(() => _isCoupleGoal = val),
+                      activeTrackColor: AppColors.pink,
+                      activeThumbColor: Colors.white,
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: context.isDarkMode ? AppColors.borderDark : AppColors.borderLight,
+                    ),
+                  ],
+                ),
+                // Partner email field — solo visible si es couple goal
+                if (_isCoupleGoal) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _partnerEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: "Partner's email address",
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      prefixIconColor: AppColors.pink,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.pink, width: 1.5),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.pink.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your partner will receive an invitation to join this goal.',
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // ─────────────────────────────────────────────────────────────────
+
           const SizedBox(height: 24),
           if (_amountController.text.isNotEmpty) _buildEstimatePreview(),
         ],

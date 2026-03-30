@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/providers/sync_provider.dart';
+import '../../../../core/services/sync_service.dart';
 import '../providers/home_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/goal_card.dart';
@@ -13,6 +15,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint('💾 [HomeScreen] build');
+    // 🔄 Activar sync automático con Supabase cada vez que se abre el home
+    ref.watch(autoSyncProvider);
+    final syncState = ref.watch(syncStateProvider);
     final goalsAsync = ref.watch(activeGoalsProvider);
     final user = ref.watch(currentUserProvider);
 
@@ -31,11 +36,34 @@ class HomeScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            context.l10n.todaysSaving,
-                            style: context.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                context.l10n.todaysSaving,
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              if (syncState == SyncState.syncing) ...[
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 10,
+                                  height: 10,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                              if (syncState == SyncState.error) ...[
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.cloud_off_rounded,
+                                  size: 14,
+                                  color: AppColors.warning,
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 4),
                           Text(

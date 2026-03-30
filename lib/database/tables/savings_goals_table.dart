@@ -13,6 +13,7 @@ class SavingsGoals extends Table {
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get status => text().withDefault(const Constant('active'))();
+  BoolColumn get isCoupleGoal => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

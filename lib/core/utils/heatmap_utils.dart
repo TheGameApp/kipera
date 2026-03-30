@@ -44,4 +44,33 @@ class HeatmapUtils {
 
     return streak;
   }
+
+  /// Build separate heatmap data for couple goals.
+  /// Returns (userLevels, partnerLevels).
+  static ({Map<DateTime, int> userLevels, Map<DateTime, int> partnerLevels})
+      buildCoupleHeatmapData({
+    required Map<DateTime, double> userCompletionByDate,
+    required Map<DateTime, double> partnerCompletionByDate,
+  }) {
+    return (
+      userLevels: buildHeatmapData(userCompletionByDate),
+      partnerLevels: buildHeatmapData(partnerCompletionByDate),
+    );
+  }
+
+  /// Calculate combined streak for couple goals.
+  /// A day counts if EITHER partner completed.
+  static int combinedStreak(
+    List<DateTime> userDates,
+    List<DateTime> partnerDates,
+  ) {
+    final allDates = <DateTime>{};
+    for (final d in userDates) {
+      allDates.add(DateTime(d.year, d.month, d.day));
+    }
+    for (final d in partnerDates) {
+      allDates.add(DateTime(d.year, d.month, d.day));
+    }
+    return calculateStreak(allDates.toList());
+  }
 }

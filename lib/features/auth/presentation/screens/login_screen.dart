@@ -312,7 +312,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     GestureDetector(
                       onTap: () {
                         debugPrint('🧭 [LoginScreen] navigating to register');
-                        context.go('/register');
+                        context.push('/register');
                       },
                       child: Text(
                         'Sign Up',

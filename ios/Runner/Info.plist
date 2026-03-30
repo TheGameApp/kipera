@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Deep Links: kipera:// URL scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kipera</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.kipera.app</string>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -6,17 +6,19 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/saving_methods.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/extensions/num_extensions.dart';
+import '../../../../core/widgets/currency_text.dart';
 import '../../../../core/utils/heatmap_utils.dart';
 import '../../../../core/utils/saving_calculator.dart';
 import '../../../../core/widgets/kipera_back_button.dart';
 import '../../../../core/widgets/kipera_snackbar.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+import '../../../invitations/presentation/providers/invitations_provider.dart';
 import '../../../../core/widgets/heatmap_widget.dart';
 import '../../../../core/widgets/progress_ring.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../database/app_database.dart';
-
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/providers/sync_provider.dart';
 class GoalDetailScreen extends ConsumerWidget {
   final String goalId;
 
@@ -95,6 +97,30 @@ class GoalDetailScreen extends ConsumerWidget {
                         Center(
                           child: Column(
                             children: [
+                              if (goal.isCoupleGoal)
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.pink.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.pink.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text('❤️', style: TextStyle(fontSize: 13)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Couple Goal',
+                                        style: context.textTheme.labelSmall?.copyWith(
+                                          color: AppColors.pink,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               Text(
                                 goal.name,
                                 style: context.textTheme.headlineMedium
@@ -171,19 +197,31 @@ class GoalDetailScreen extends ConsumerWidget {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      totalSaved.toCurrency(),
+                                    CurrencyText(
+                                      amount: totalSaved,
                                       style: context.textTheme.titleLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
                                           ),
                                     ),
-                                    Text(
-                                      'of ${goal.targetAmount.toCurrency()}',
-                                      style: context.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: AppColors.textSecondary,
-                                          ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'of ',
+                                          style: context.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                        CurrencyText(
+                                          amount: goal.targetAmount,
+                                          style: context.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -335,32 +373,36 @@ class GoalDetailScreen extends ConsumerWidget {
 
                             return Row(
                               children: [
-                                _StatCard(
-                                  icon: Icons.local_fire_department,
-                                  label: context.l10n.streak,
-                                  value: '$streak',
-                                  color: Colors.orange,
-                                ),
-                                const SizedBox(width: 12),
-                                _StatCard(
-                                  icon: Icons.calendar_today,
-                                  label: context.l10n.days,
-                                  value: '$completedDays/$totalDays',
-                                  color: AppColors.info,
-                                ),
-                                const SizedBox(width: 12),
-                                _StatCard(
-                                  icon: Icons.trending_up,
-                                  label: context.l10n.remaining,
-                                  value:
-                                      totalSavedAsync.whenOrNull(
-                                        data: (saved) =>
-                                            (goal.targetAmount - saved)
-                                                .toCurrency(),
-                                      ) ??
-                                      '...',
-                                  color: AppColors.success,
-                                ),
+                                    _StatCard(
+                                      icon: Icons.local_fire_department,
+                                      label: context.l10n.streak,
+                                      value: Text('$streak'),
+                                      color: Colors.orange,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _StatCard(
+                                      icon: Icons.calendar_today,
+                                      label: context.l10n.days,
+                                      value: Text('$completedDays/$totalDays'),
+                                      color: AppColors.info,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _StatCard(
+                                      icon: Icons.trending_up,
+                                      label: context.l10n.remaining,
+                                      value: totalSavedAsync.whenOrNull(
+                                            data: (saved) => CurrencyText(
+                                              amount: goal.targetAmount - saved,
+                                              style: context.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.success,
+                                              ),
+                                            ),
+                                          ) ??
+                                          const Text('...'),
+                                      color: AppColors.success,
+                                    ),
                               ],
                             );
                           },
@@ -423,15 +465,24 @@ class GoalDetailScreen extends ConsumerWidget {
                                         ? AppColors.success
                                         : AppColors.textSecondary,
                                   ),
-                                  title: Text(entry.actualAmount.toCurrency()),
+                                  title: CurrencyText(amount: entry.actualAmount),
                                   subtitle: Text(
                                     '${entry.date.month}/${entry.date.day}/${entry.date.year}',
                                   ),
                                   trailing: entry.isCompleted
                                       ? null
-                                      : Text(
-                                          'Expected: ${entry.expectedAmount.toCurrency()}',
-                                          style: context.textTheme.bodySmall,
+                                      : Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Expected: ',
+                                              style: context.textTheme.bodySmall,
+                                            ),
+                                            CurrencyText(
+                                              amount: entry.expectedAmount,
+                                              style: context.textTheme.bodySmall,
+                                            ),
+                                          ],
                                         ),
                                 );
                               },
@@ -509,37 +560,82 @@ class GoalDetailScreen extends ConsumerWidget {
                     _editReminderTime(context, ref, goal);
                   },
                 ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.primary,
+                if (ref.read(currentUserProvider)?.id == goal.userId) ...[
+                  ListTile(
+                    leading: const Icon(
+                      Icons.edit_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Edit Goal Name'),
+                    subtitle: Text(
+                      goal.name,
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _editGoalName(context, ref, goal);
+                    },
                   ),
-                  title: const Text('Edit Goal Name'),
-                  subtitle: Text(
-                    goal.name,
-                    style: TextStyle(color: AppColors.textSecondary),
+                  // Si ya es couple goal o puede convertirse, mostrar opción de invitar
+                  ListTile(
+                    leading: Icon(
+                      Icons.favorite_border_rounded,
+                      color: AppColors.pink,
+                    ),
+                    title: Text(
+                      goal.isCoupleGoal ? 'Invite Another Partner' : 'Invite Partner',
+                      style: TextStyle(color: AppColors.pink),
+                    ),
+                    subtitle: Text(
+                      goal.isCoupleGoal
+                          ? 'Send invitation to a new partner'
+                          : 'Turn this into a couple goal',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _showInvitePartnerDialog(context, ref, goal);
+                    },
                   ),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _editGoalName(context, ref, goal);
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.red),
-                  title: const Text(
-                    'Delete Goal',
-                    style: TextStyle(color: Colors.red),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline, color: Colors.red),
+                    title: const Text(
+                      'Delete Goal',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    subtitle: const Text(
+                      'This action cannot be undone',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _confirmDeleteGoal(context, ref, goal);
+                    },
                   ),
-                  subtitle: const Text(
-                    'This action cannot be undone',
-                    style: TextStyle(color: Colors.red),
+                ] else if (goal.isCoupleGoal) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.exit_to_app, color: Colors.orange),
+                    title: const Text(
+                      'Leave Shared Goal',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                    subtitle: const Text(
+                      'Stop syncing and cancel reminders',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _confirmLeaveGoal(
+                        context,
+                        ref,
+                        goal,
+                        ref.read(currentUserProvider)!,
+                      );
+                    },
                   ),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _confirmDeleteGoal(context, ref, goal);
-                  },
-                ),
+                ],
               ],
             ),
           ),
@@ -707,6 +803,234 @@ class GoalDetailScreen extends ConsumerWidget {
       }
     }
   }
+
+  Future<void> _confirmLeaveGoal(
+    BuildContext context,
+    WidgetRef ref,
+    SavingsGoal goal,
+    dynamic currentUser,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Leave Shared Goal'),
+          content: Text(
+            'Are you sure you want to leave "${goal.name}"? You will be removed from this couple goal and stop receiving reminders.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.orange),
+              child: const Text('Leave Goal'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final supabaseService = ref.read(supabaseServiceProvider);
+        
+        // 1. Remove from cloud
+        await supabaseService.leaveCoupleGoal(
+          goal.id, 
+          currentUser.id as String, 
+          (currentUser.email as String?) ?? '',
+        );
+        
+        // 2. Remove locally without queueing a delete sync
+        final db = ref.read(databaseProvider);
+        await db.goalsDao.deleteGoalRemoteOnly(goal.id);
+        
+        // 3. Cancel local notification
+        await NotificationService().cancelGoalReminder(goal.id);
+        debugPrint(
+          '🔔 [GoalDetail] notification cancelled for left goal: ${goal.id}',
+        );
+        
+        if (context.mounted) {
+          KiperaSnackBar.show(
+            context,
+            message: 'You have left "${goal.name}".',
+            type: KiperaSnackType.info,
+            icon: Icons.exit_to_app,
+          );
+          context.pop();
+        }
+      } catch (e) {
+        debugPrint('❌ [GoalDetail] leaveGoal error: $e');
+        if (context.mounted) {
+          KiperaSnackBar.show(
+            context,
+            message: 'Failed to leave goal.',
+            type: KiperaSnackType.error,
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _showInvitePartnerDialog(
+    BuildContext context,
+    WidgetRef ref,
+    SavingsGoal goal,
+  ) async {
+    await showDialog(
+      context: context,
+      builder: (_) => _InvitePartnerDialog(
+        goalId: goal.id,
+        goalName: goal.name,
+        isCoupleGoal: goal.isCoupleGoal,
+      ),
+    );
+  }
+}
+
+/// Diálogo para invitar partner a un goal existente
+class _InvitePartnerDialog extends StatefulWidget {
+  final String goalId;
+  final String goalName;
+  final bool isCoupleGoal;
+
+  const _InvitePartnerDialog({
+    required this.goalId,
+    required this.goalName,
+    required this.isCoupleGoal,
+  });
+
+  @override
+  State<_InvitePartnerDialog> createState() => _InvitePartnerDialogState();
+}
+
+class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
+  final _emailController = TextEditingController();
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Text('❤️', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              const Text('Invite Partner'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Goal: ${widget.goalName}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: "Partner's email address",
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: _loading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: _loading
+                  ? null
+                  : () async {
+                      final email = _emailController.text.trim();
+                      if (email.isEmpty || !email.contains('@')) {
+                        KiperaSnackBar.show(
+                          context,
+                          message: 'Please enter a valid email.',
+                          type: KiperaSnackType.warning,
+                        );
+                        return;
+                      }
+
+                      setState(() => _loading = true);
+                      try {
+                        final user = ref.read(currentUserProvider);
+                        if (user == null) return;
+
+                        // Si el goal no era couple, convertirlo primero
+                        if (!widget.isCoupleGoal) {
+                          final db = ref.read(databaseProvider);
+                          await db.goalsDao.updateGoal(
+                            widget.goalId,
+                            SavingsGoalsCompanion(
+                              isCoupleGoal: const Value(true),
+                              updatedAt: Value(DateTime.now()),
+                            ),
+                          );
+                        }
+
+                        // Asegurar que Supabase tiene el objetivo arriba ANTES de enviar la invitación
+                        await ref.read(syncServiceProvider).syncAll();
+
+                        final invService = ref.read(invitationServiceProvider);
+                        await invService.sendInvitation(
+                          goalId: widget.goalId,
+                          inviterUserId: user.id,
+                          inviteeEmail: email,
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          KiperaSnackBar.show(
+                            context,
+                            message: '❤️ Invitation sent to $email!',
+                            type: KiperaSnackType.success,
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          KiperaSnackBar.show(
+                            context,
+                            message: 'Could not send invitation. Try again.',
+                            type: KiperaSnackType.error,
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _loading = false);
+                      }
+                    },
+              child: _loading
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text('Send', style: TextStyle(color: AppColors.pink, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _EditGoalNameDialog extends StatefulWidget {
@@ -765,7 +1089,7 @@ class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String value;
+  final Widget value;
   final Color color;
 
   const _StatCard({
@@ -788,13 +1112,12 @@ class _StatCard extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(height: 4),
-            Text(
-              value,
+            DefaultTextStyle(
               style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  const TextStyle(),
+              child: value,
             ),
             Text(
               label,

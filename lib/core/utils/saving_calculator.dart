@@ -23,31 +23,38 @@ class SavingCalculator {
     };
   }
 
-  /// Calculate total days needed to reach target amount
+  /// Calculate total days needed to reach target amount.
+  /// [memberCount] defaults to 1 (individual). For couple goals, pass 2
+  /// so each day accumulates memberCount × dailyAmount.
   static int estimatedDays({
     required SavingMethod method,
     required double targetAmount,
     required MethodConfig config,
+    int memberCount = 1,
   }) {
+    // For couple goals, the effective target per person is halved
+    final effectiveTarget = targetAmount / memberCount;
     return switch (method) {
-      SavingMethod.progressive => _progressiveDays(targetAmount),
-      SavingMethod.fixedDaily => _fixedDays(targetAmount, config.fixedAmount ?? 10),
-      SavingMethod.reverseProgressive => _progressiveDays(targetAmount),
-      SavingMethod.weeklyChallenge => _weeklyChallengeDays(targetAmount),
-      SavingMethod.randomEnvelopes => _progressiveDays(targetAmount),
-      SavingMethod.multiplier => _multiplierDays(targetAmount, config),
-      SavingMethod.biWeeklySteps => _biWeeklyDays(targetAmount, config),
+      SavingMethod.progressive => _progressiveDays(effectiveTarget),
+      SavingMethod.fixedDaily => _fixedDays(effectiveTarget, config.fixedAmount ?? 10),
+      SavingMethod.reverseProgressive => _progressiveDays(effectiveTarget),
+      SavingMethod.weeklyChallenge => _weeklyChallengeDays(effectiveTarget),
+      SavingMethod.randomEnvelopes => _progressiveDays(effectiveTarget),
+      SavingMethod.multiplier => _multiplierDays(effectiveTarget, config),
+      SavingMethod.biWeeklySteps => _biWeeklyDays(effectiveTarget, config),
       SavingMethod.penalty => 0, // Variable
     };
   }
 
-  /// Calculate the total amount that will be saved over N days
+  /// Calculate the total amount that will be saved over N days.
+  /// [memberCount] multiplies the total (both members save each day).
   static double totalForDays({
     required SavingMethod method,
     required MethodConfig config,
     required int days,
+    int memberCount = 1,
   }) {
-    return switch (method) {
+    final base = switch (method) {
       SavingMethod.progressive => days * (days + 1) / 2,
       SavingMethod.fixedDaily => (config.fixedAmount ?? 10) * days,
       SavingMethod.reverseProgressive => days * (days + 1) / 2,
@@ -57,6 +64,7 @@ class SavingCalculator {
       SavingMethod.biWeeklySteps => _biWeeklyTotal(config, days),
       SavingMethod.penalty => (config.penaltyAmount ?? 5) * days,
     };
+    return base * memberCount;
   }
 
   /// Generate shuffled sequence for envelope method

@@ -2,21 +2,36 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../theme/app_theme.dart';
+import 'couple_heatmap_widget.dart';
 
 class HeatmapWidget extends StatelessWidget {
   final Map<DateTime, int> data;
   final int weeks;
   final DateTime? startDate;
 
+  /// Optional: partner heatmap data for couple goals.
+  /// When provided, renders a diagonal-split heatmap instead.
+  final Map<DateTime, int>? partnerData;
+
   const HeatmapWidget({
     super.key,
     required this.data,
     this.weeks = 16,
     this.startDate,
+    this.partnerData,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Delegate to couple heatmap if partner data is provided
+    if (partnerData != null) {
+      return CoupleHeatmapWidget(
+        userLevels: data,
+        partnerLevels: partnerData!,
+        weeks: weeks,
+      );
+    }
+
     final kiperaColors = Theme.of(context).extension<KiperaColors>();
     final colors =
         kiperaColors?.heatmapColors ??

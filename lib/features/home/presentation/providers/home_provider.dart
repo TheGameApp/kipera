@@ -56,3 +56,17 @@ final completedEntriesProvider = FutureProvider.family<List<SavingEntry>, String
   final db = ref.watch(databaseProvider);
   return db.entriesDao.getCompletedEntriesForGoal(goalId);
 });
+
+/// Members of a couple goal (owner + partner).
+final goalMembersProvider = FutureProvider.family<List<GoalMember>, String>((ref, goalId) {
+  final db = ref.watch(databaseProvider);
+  return db.goalMembersDao.getMembersForGoal(goalId);
+});
+
+/// Watch partner's entries on a couple goal (entries from users other than current).
+final partnerEntriesProvider = StreamProvider.family<List<SavingEntry>, String>((ref, goalId) {
+  final db = ref.watch(databaseProvider);
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  return db.entriesDao.watchPartnerEntries(goalId, user.id);
+});

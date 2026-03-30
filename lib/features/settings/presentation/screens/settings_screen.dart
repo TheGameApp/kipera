@@ -196,6 +196,21 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
+            // My Statistics
+            _SettingsTile(
+              icon: Icons.bar_chart_outlined,
+              title: context.l10n.statistics,
+              onTap: () {
+                debugPrint('🧭 [Settings] statistics tapped → navigating to /statistics');
+                context.push('/statistics');
+              },
+              trailing: Icon(
+                Icons.chevron_right,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textSecondary,
+                size: 20,
+              ),
+            ),
+
             // Light Mode toggle
             _SettingsTile(
               icon: Icons.light_mode_outlined,

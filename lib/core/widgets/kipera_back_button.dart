@@ -11,8 +11,10 @@ class KiperaBackButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap ?? () {
-        if (Navigator.of(context).canPop()) {
+        if (context.canPop()) {
           context.pop();
+        } else {
+          debugPrint('⚠️ [KiperaBackButton] Cannot pop — is this route pushed?');
         }
       },
       child: Container(

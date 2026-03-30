@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/extensions/num_extensions.dart';
+import '../../../../core/widgets/currency_text.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+
+import '../../../../core/widgets/kipera_back_button.dart';
 
 class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
@@ -15,19 +17,31 @@ class StatisticsScreen extends ConsumerWidget {
     debugPrint('💾 [Statistics] screen build');
     final goalsAsync = ref.watch(activeGoalsProvider);
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+    return Scaffold(
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.statistics,
-              style: context.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: [
+                  const KiperaBackButton(),
+                  const SizedBox(width: 12),
+                  Text(
+                    context.l10n.statistics,
+                    style: context.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
             goalsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Text('Error: $e'),
@@ -65,9 +79,12 @@ class StatisticsScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         _OverviewCard(
                           label: 'Total Target',
-                          value: goals
-                              .fold(0.0, (s, g) => s + g.targetAmount)
-                              .toCompactCurrency(),
+                          valueWidget: CurrencyText(
+                            amount: goals.fold(0.0, (s, g) => s + g.targetAmount),
+                            style: context.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           icon: Icons.savings,
                           color: AppColors.success,
                         ),
@@ -178,10 +195,23 @@ class StatisticsScreen extends ConsumerWidget {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 ),
                                 error: (_, __) => const Text('-'),
-                                data: (saved) => Text(
-                                  '${saved.toCurrency()} / ${goal.targetAmount.toCurrency()}',
-                                  style: context.textTheme.bodySmall,
-                                ),
+                                data: (saved) => Row(
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     CurrencyText(
+                                       amount: saved,
+                                       style: context.textTheme.bodySmall,
+                                     ),
+                                     Text(
+                                       ' / ',
+                                       style: context.textTheme.bodySmall,
+                                     ),
+                                     CurrencyText(
+                                       amount: goal.targetAmount,
+                                       style: context.textTheme.bodySmall,
+                                     ),
+                                   ],
+                                 ),
                               ),
                               const SizedBox(width: 8),
                               Icon(
@@ -198,6 +228,10 @@ class StatisticsScreen extends ConsumerWidget {
                 );
               },
             ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -207,16 +241,18 @@ class StatisticsScreen extends ConsumerWidget {
 
 class _OverviewCard extends StatelessWidget {
   final String label;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
   final IconData icon;
   final Color color;
 
   const _OverviewCard({
     required this.label,
-    required this.value,
+    this.value,
+    this.valueWidget,
     required this.icon,
     required this.color,
-  });
+  }) : assert(value != null || valueWidget != null);
 
   @override
   Widget build(BuildContext context) {
@@ -232,11 +268,12 @@ class _OverviewCard extends StatelessWidget {
           children: [
             Icon(icon, color: color),
             const SizedBox(height: 8),
-            Text(
-              value,
+            DefaultTextStyle(
               style: context.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  const TextStyle(),
+              child: valueWidget ?? Text(value!),
             ),
             Text(
               label,

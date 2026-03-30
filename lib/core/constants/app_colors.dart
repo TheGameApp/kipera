@@ -45,6 +45,20 @@ abstract final class AppColors {
   static const heatmapDark3 = Color(0xFF8B5CF6);
   static const heatmapDark4 = Color(0xFFA78BFA);
 
+  // Heatmap Partner Light (pink/rose palette)
+  static const heatmapPartnerLight0 = Color(0xFFF3F4F6);
+  static const heatmapPartnerLight1 = Color(0xFFFCE4EC);
+  static const heatmapPartnerLight2 = Color(0xFFF48FB1);
+  static const heatmapPartnerLight3 = Color(0xFFEC407A);
+  static const heatmapPartnerLight4 = Color(0xFFD81B60);
+
+  // Heatmap Partner Dark (pink/rose palette)
+  static const heatmapPartnerDark0 = Color(0xFF374151);
+  static const heatmapPartnerDark1 = Color(0xFF880E4F);
+  static const heatmapPartnerDark2 = Color(0xFFC2185B);
+  static const heatmapPartnerDark3 = Color(0xFFE91E63);
+  static const heatmapPartnerDark4 = Color(0xFFF06292);
+
   // Goal/Habit Card Pastel Colors (from ref: pink, sage, peach, cream, sky)
   static const goalColors = [
     Color(0xFFFCDCE1), // Pink

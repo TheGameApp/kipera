@@ -4,6 +4,7 @@ import 'savings_goals_table.dart';
 class SavingEntries extends Table {
   TextColumn get id => text()();
   TextColumn get goalId => text().references(SavingsGoals, #id)();
+  TextColumn get userId => text().nullable()(); // FK to user who made the check-in (nullable for migration compat)
   DateTimeColumn get date => dateTime()();
   RealColumn get expectedAmount => real()();
   RealColumn get actualAmount => real().withDefault(const Constant(0))();
@@ -16,6 +17,6 @@ class SavingEntries extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {goalId, date},
+        {goalId, userId, date}, // Includes userId so both partners can check-in same day
       ];
 }

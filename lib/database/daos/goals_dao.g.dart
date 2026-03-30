@@ -6,4 +6,5 @@ part of 'goals_dao.dart';
 mixin _$GoalsDaoMixin on DatabaseAccessor<AppDatabase> {
   $UsersTable get users => attachedDatabase.users;
   $SavingsGoalsTable get savingsGoals => attachedDatabase.savingsGoals;
+  $GoalMembersTable get goalMembers => attachedDatabase.goalMembers;
 }
