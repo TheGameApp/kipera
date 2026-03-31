@@ -218,7 +218,9 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
                       final goal =
                           inv['savings_goals'] as Map<String, dynamic>? ?? {};
                       final inviter =
-                          inv['inviter'] as Map<String, dynamic>? ?? {};
+                          inv['profiles'] as Map<String, dynamic>? ?? {};
+                          
+                      debugPrint('👀 RAW INV: $inv');
 
                       return InvitationCard(
                         goalName: goal['name'] as String? ?? context.l10n.unknownGoal,

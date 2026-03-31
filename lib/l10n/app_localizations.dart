@@ -422,11 +422,11 @@ abstract class AppLocalizations {
   /// **'days'**
   String get days;
 
-  /// No description provided for @reachGoalRemaining.
+  /// No description provided for @daysCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1 {day left to reach your goal} other {days left to reach your goal}}'**
-  String reachGoalRemaining(int count);
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String daysCount(int count);
 
   /// No description provided for @decline.
   ///
@@ -1394,11 +1394,11 @@ abstract class AppLocalizations {
   /// **'!'**
   String get reachGoalInSuffix;
 
-  /// No description provided for @daysCount.
+  /// No description provided for @reachGoalRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 day} other{{count} days}}'**
-  String daysCount(int count);
+  /// **'{count, plural, =1 {day left to reach your goal} other {days left to reach your goal}}'**
+  String reachGoalRemaining(int count);
 
   /// No description provided for @register.
   ///

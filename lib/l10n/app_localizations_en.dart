@@ -187,12 +187,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get days => 'days';
 
   @override
-  String reachGoalRemaining(int count) {
+  String daysCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'days left to reach your goal',
-      one: 'day left to reach your goal',
+      other: '$count days',
+      one: '1 day',
     );
     return '$_temp0';
   }
@@ -736,12 +736,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reachGoalInSuffix => '!';
 
   @override
-  String daysCount(int count) {
+  String reachGoalRemaining(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count days',
-      one: '1 day',
+      other: 'days left to reach your goal',
+      one: 'day left to reach your goal',
     );
     return '$_temp0';
   }

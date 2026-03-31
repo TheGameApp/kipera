@@ -154,7 +154,7 @@ class SupabaseService {
     try {
       final response = await _client
           .from('goal_invitations')
-          .select('*, savings_goals(name, target_amount, method, method_config, icon_name, color_hex), inviter:profiles!goal_invitations_inviter_id_fkey(display_name, avatar_url)')
+          .select('*, savings_goals(*), profiles(display_name, avatar_url)')
           .eq('invitee_email', email)
           .eq('status', 'pending')
           .order('created_at', ascending: false);
