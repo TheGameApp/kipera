@@ -31,7 +31,7 @@ class AchievementsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(context.l10n.achievements)),
       body: allAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(context.l10n.errorPrefix(e.toString()))),
         data: (allAchievements) {
           final unlockedIds = userAsync.valueOrNull
                   ?.map((ua) => ua.achievementId)
@@ -101,7 +101,7 @@ class _AchievementCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            achievement.title,
+            _getLocalizedTitle(context, achievement.key, achievement.title),
             style: context.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: isUnlocked
@@ -119,6 +119,27 @@ class _AchievementCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getLocalizedTitle(BuildContext context, String key, String defaultTitle) {
+    return switch (key) {
+      'firstStep' => context.l10n.firstStep,
+      'streak3' => context.l10n.streak3,
+      'weeklyWarrior' => context.l10n.weeklyWarrior,
+      'biweeklyChampion' => context.l10n.biweeklyChampion,
+      'monthlyMaster' => context.l10n.monthlyMaster,
+      'centurion' => context.l10n.centurion,
+      'quarterWay' => context.l10n.quarterWay,
+      'halfWay' => context.l10n.halfWay,
+      'almostThere' => context.l10n.almostThere,
+      'goalAchieved' => context.l10n.goalAchieved,
+      'club100' => context.l10n.club100,
+      'club1000' => context.l10n.club1000,
+      'perfectWeek' => context.l10n.perfectWeek,
+      'perfectMonth' => context.l10n.perfectMonth,
+      'comeback' => context.l10n.comeback,
+      _ => defaultTitle,
+    };
   }
 
   IconData _iconFromName(String name) {

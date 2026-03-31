@@ -125,7 +125,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter your email address to get the password reset link.',
+                context.l10n.forgotPasswordDesc,
                 style: context.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -140,9 +140,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     color: AppColors.successLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Check your email for a reset link.',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.resetLinkSent,
+                    style: const TextStyle(
                       color: AppColors.success,
                       fontWeight: FontWeight.w500,
                     ),
@@ -152,11 +152,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ],
 
               // Email field
-              _buildLabel('Email'),
+              _buildLabel(context.l10n.email),
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: _inputDecoration(hintText: 'Enter your email'),
+                decoration: _inputDecoration(hintText: context.l10n.enterEmail),
               ),
 
               const Spacer(),
@@ -175,9 +175,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Send Code',
-                          style: TextStyle(
+                      : Text(
+                          context.l10n.sendResetLink,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),

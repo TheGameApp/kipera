@@ -67,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Hello, ${user?.userMetadata?['display_name'] ?? 'Saver'}!',
+                            context.l10n.helloUser(user?.userMetadata?['display_name'] ?? context.l10n.defaultUserName),
                             style: context.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -95,7 +95,7 @@ class HomeScreen extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => SliverFillRemaining(
-              child: Center(child: Text('Error: $e')),
+              child: Center(child: Text(context.l10n.errorPrefix(e.toString()))),
             ),
             data: (goals) {
               if (goals.isEmpty) {

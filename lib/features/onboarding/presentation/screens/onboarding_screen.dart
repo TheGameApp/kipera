@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       context.go('/login');
                     },
                     child: Text(
-                      'Maybe Later',
+                      context.l10n.maybeLater,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -191,13 +191,13 @@ class _GoalSelectionPage extends StatelessWidget {
     required this.onToggle,
   });
 
-  static const _options = [
-    ('Travel', '\u2708\uFE0F'),
-    ('Home', '\u{1F3E0}'),
-    ('Education', '\u{1F393}'),
-    ('Fun & Entertainment', '\u{1F3AE}'),
-    ('Emergency Fund', '\u{1F4B0}'),
-    ('Tech & Gadgets', '\u{1F4F1}'),
+  List<(String, String)> _getOptions(BuildContext context) => [
+    (context.l10n.onboardingTravel, '\u2708\uFE0F'),
+    (context.l10n.onboardingHome, '\u{1F3E0}'),
+    (context.l10n.onboardingEducation, '\u{1F393}'),
+    (context.l10n.onboardingFun, '\u{1F3AE}'),
+    (context.l10n.onboardingEmergency, '\u{1F4B0}'),
+    (context.l10n.onboardingTech, '\u{1F4F1}'),
   ];
 
   @override
@@ -214,7 +214,7 @@ class _GoalSelectionPage extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           Text(
-            'What do you want\nto save for?',
+            context.l10n.onboardingGoalTitle,
             style: context.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -223,7 +223,7 @@ class _GoalSelectionPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Choose what you\'d like to focus on first.',
+            context.l10n.onboardingGoalSubtitle,
             style: context.textTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -231,7 +231,7 @@ class _GoalSelectionPage extends StatelessWidget {
           const SizedBox(height: 28),
           Expanded(
             child: ListView.separated(
-              itemCount: _options.length,
+              itemCount: _getOptions(context).length,
               padding: EdgeInsets.zero,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
@@ -259,12 +259,12 @@ class _GoalSelectionPage extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                          _options[index].$2,
+                          _getOptions(context)[index].$2,
                           style: const TextStyle(fontSize: 22),
                         ),
                         const SizedBox(width: 14),
                         Text(
-                          _options[index].$1,
+                          _getOptions(context)[index].$1,
                           style: context.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
                             color: textColor,
@@ -294,26 +294,26 @@ class _SaveSmarterPage extends StatelessWidget {
     required this.onSelect,
   });
 
-  static const _methods = [
+  List<(String, String, String)> _getMethods(BuildContext context) => [
     (
       '\u{1F4C8}',
-      'Progressive',
-      'Start small and increase daily. Day 1 = \$1, Day 2 = \$2...'
+      context.l10n.progressiveMethodTitle,
+      context.l10n.progressiveMethodOnboardingDesc
     ),
     (
       '\u{1F4CA}',
-      'Fixed Daily',
-      'Save the same amount every day. Simple and consistent.'
+      context.l10n.fixedMethodTitle,
+      context.l10n.fixedMethodOnboardingDesc
     ),
     (
       '\u{1F3B2}',
-      'Random Envelopes',
-      'Random amounts each day. Fun and surprising!'
+      context.l10n.randomMethodTitle,
+      context.l10n.randomMethodOnboardingDesc
     ),
     (
       '\u26A1',
-      'Multiplier',
-      'Exponential growth with a daily cap for big results.'
+      context.l10n.multiplierMethodTitle,
+      context.l10n.multiplierMethodOnboardingDesc
     ),
   ];
 
@@ -331,7 +331,7 @@ class _SaveSmarterPage extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           Text(
-            'Save Smarter',
+            context.l10n.onboardingMethodTitle,
             style: context.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -340,7 +340,7 @@ class _SaveSmarterPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Pick a method that fits your lifestyle.',
+            context.l10n.onboardingMethodSubtitle,
             style: context.textTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -348,11 +348,11 @@ class _SaveSmarterPage extends StatelessWidget {
           const SizedBox(height: 28),
           Expanded(
             child: ListView.separated(
-              itemCount: _methods.length,
+              itemCount: _getMethods(context).length,
               padding: EdgeInsets.zero,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final method = _methods[index];
+                final method = _getMethods(context)[index];
                 final isSelected = selectedMethod == index;
                 return GestureDetector(
                   onTap: () => onSelect(index),
@@ -442,7 +442,7 @@ class _TrackProgressPage extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           Text(
-            'Track Your\nProgress',
+            context.l10n.onboardingTrackTitle,
             style: context.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -451,7 +451,7 @@ class _TrackProgressPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Visualize savings and unlock achievements.',
+            context.l10n.onboardingTrackSubtitle,
             style: context.textTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -470,7 +470,7 @@ class _TrackProgressPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Saving Heatmap',
+                  context.l10n.savingHeatmap,
                   style: context.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: textColor,
@@ -487,14 +487,14 @@ class _TrackProgressPage extends StatelessWidget {
           // Achievement preview cards
           _AchievementPreviewTile(
             emoji: '\u{1F525}',
-            title: '7-Day Streak',
-            subtitle: 'Save for 7 days in a row',
+            title: context.l10n.streak7Title,
+            subtitle: context.l10n.streak7Subtitle,
           ),
           const SizedBox(height: 12),
           _AchievementPreviewTile(
             emoji: '\u{1F3C6}',
-            title: 'Goal Achieved!',
-            subtitle: 'Complete 100% of a goal',
+            title: context.l10n.goalAchievedTitle,
+            subtitle: context.l10n.goalAchievedSubtitle,
           ),
         ],
       ),

@@ -124,7 +124,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const SizedBox(height: 60),
                 Text(
-                  'Welcome back',
+                  context.l10n.welcomeBack,
                   style: context.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.textDark : AppColors.textLight,
@@ -133,7 +133,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Login to your account',
+                  context.l10n.loginToAccount,
                   style: context.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -142,23 +142,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // Email field
-                _buildLabel('Email'),
+                _buildLabel(context.l10n.email),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration(hintText: 'Enter your email'),
+                  decoration: _inputDecoration(hintText: context.l10n.enterEmail),
                   validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                      v == null || !v.contains('@') ? context.l10n.invalidEmail : null,
                 ),
                 const SizedBox(height: 20),
 
                 // Password field
-                _buildLabel('Password'),
+                _buildLabel(context.l10n.password),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: _inputDecoration(
-                    hintText: 'Enter your password',
+                    hintText: context.l10n.enterPassword,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -172,7 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   validator: (v) =>
-                      v == null || v.length < 6 ? 'Min 6 characters' : null,
+                      v == null || v.length < 6 ? context.l10n.passwordMinChar : null,
                 ),
                 const SizedBox(height: 12),
 
@@ -198,7 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Remember me',
+                      context.l10n.rememberMe,
                       style: context.textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -253,7 +253,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'or Login with',
+                        context.l10n.orLoginWith,
                         style: context.textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -304,7 +304,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      context.l10n.dontHaveAccountStart,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -315,7 +315,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         context.push('/register');
                       },
                       child: Text(
-                        'Sign Up',
+                        context.l10n.signUpLink,
                         style: context.textTheme.bodyMedium?.copyWith(
                           color: AppColors.purple,
                           fontWeight: FontWeight.bold,

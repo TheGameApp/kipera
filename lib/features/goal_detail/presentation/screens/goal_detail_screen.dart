@@ -67,9 +67,9 @@ class GoalDetailScreen extends ConsumerWidget {
       ),
       body: goalAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(context.l10n.errorPrefix(e.toString()))),
         data: (goal) {
-          if (goal == null) return const Center(child: Text('Goal not found'));
+          if (goal == null) return Center(child: Text(context.l10n.goalNotFound));
 
           return SafeArea(
             child: Column(
@@ -112,7 +112,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                       const Text('❤️', style: TextStyle(fontSize: 13)),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'Couple Goal',
+                                        context.l10n.coupleGoalLabel,
                                         style: context.textTheme.labelSmall?.copyWith(
                                           color: AppColors.pink,
                                           fontWeight: FontWeight.w600,
@@ -134,7 +134,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (_reminderTimeText(goal) != null) ...[
+                              if (_reminderTimeText(context, goal) != null) ...[
                                 const SizedBox(height: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -159,7 +159,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                       ),
                                       const SizedBox(width: 5),
                                       Text(
-                                        _reminderTimeText(goal)!,
+                                        _reminderTimeText(context, goal)!,
                                         style: context.textTheme.bodySmall
                                             ?.copyWith(
                                               color: AppColors.primary
@@ -208,9 +208,8 @@ class GoalDetailScreen extends ConsumerWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          'of ',
-                                          style: context.textTheme.bodySmall
-                                              ?.copyWith(
+                                          context.l10n.ofLabel,
+                                          style: context.textTheme.bodySmall?.copyWith(
                                                 color: AppColors.textSecondary,
                                               ),
                                         ),
@@ -300,14 +299,17 @@ class GoalDetailScreen extends ConsumerWidget {
                                           text: TextSpan(
                                             style: context.textTheme.bodyMedium
                                                 ?.copyWith(
-                                                  color: context.isDarkMode
+                                    color: context.isDarkMode
                                                       ? AppColors.textDark
                                                       : AppColors.textLight,
                                                 ),
                                             children: daysLeft > 0
                                                 ? [
                                                     TextSpan(
-                                                      text: '$daysLeft ',
+                                                      text: context.l10n
+                                                          .reachGoalRemaining(
+                                                            daysLeft,
+                                                          ),
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -315,32 +317,26 @@ class GoalDetailScreen extends ConsumerWidget {
                                                         color: AppColors.purple,
                                                       ),
                                                     ),
-                                                    TextSpan(
-                                                      text: daysLeft == 1
-                                                          ? 'day left to reach your goal'
-                                                          : 'days left to reach your goal',
-                                                    ),
                                                   ]
                                                 : [
                                                     TextSpan(
-                                                      text: 'Goal reached! ',
+                                                      text: context.l10n.goalReachedLabel,
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color: AppColors.purple,
                                                       ),
                                                     ),
-                                                    const TextSpan(
-                                                      text: 'Congratulations!',
+                                                    TextSpan(
+                                                      text: context.l10n.congratulations,
                                                     ),
                                                   ],
                                           ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Day $completedDays of $totalEstimatedDays',
-                                          style: context.textTheme.bodySmall
-                                              ?.copyWith(
+                                          context.l10n.dayOfTotal(completedDays, totalEstimatedDays),
+                                          style: context.textTheme.bodySmall?.copyWith(
                                                 color: AppColors.textSecondary,
                                               ),
                                         ),
@@ -439,7 +435,7 @@ class GoalDetailScreen extends ConsumerWidget {
 
                         // All activity
                         Text(
-                          'Activity',
+                          context.l10n.activityLabel,
                           style: context.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -475,7 +471,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
-                                              'Expected: ',
+                                              context.l10n.expectedLabel,
                                               style: context.textTheme.bodySmall,
                                             ),
                                             CurrencyText(
@@ -502,7 +498,7 @@ class GoalDetailScreen extends ConsumerWidget {
     );
   }
 
-  String? _reminderTimeText(SavingsGoal goal) {
+  String? _reminderTimeText(BuildContext context, SavingsGoal goal) {
     try {
       final config = MethodConfig.fromJson(
         jsonDecode(goal.methodConfig) as Map<String, dynamic>,
@@ -515,7 +511,7 @@ class GoalDetailScreen extends ConsumerWidget {
         final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
         final minute = time.minute.toString().padLeft(2, '0');
         final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-        return 'Daily reminder at $hour:$minute $period';
+        return context.l10n.dailyReminderAt('$hour:$minute $period');
       }
     } catch (_) {}
     return null;
@@ -550,9 +546,9 @@ class GoalDetailScreen extends ConsumerWidget {
                     Icons.access_time_rounded,
                     color: AppColors.primary,
                   ),
-                  title: const Text('Edit Reminder Time'),
+                  title: Text(context.l10n.editReminderTime),
                   subtitle: Text(
-                    _currentReminderText(goal),
+                    _currentReminderText(sheetContext, goal),
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
                   onTap: () {
@@ -566,7 +562,7 @@ class GoalDetailScreen extends ConsumerWidget {
                       Icons.edit_outlined,
                       color: AppColors.primary,
                     ),
-                    title: const Text('Edit Goal Name'),
+                    title: Text(context.l10n.editGoalName),
                     subtitle: Text(
                       goal.name,
                       style: TextStyle(color: AppColors.textSecondary),
@@ -583,13 +579,13 @@ class GoalDetailScreen extends ConsumerWidget {
                       color: AppColors.pink,
                     ),
                     title: Text(
-                      goal.isCoupleGoal ? 'Invite Another Partner' : 'Invite Partner',
+                      goal.isCoupleGoal ? context.l10n.inviteAnotherPartner : context.l10n.invitePartner,
                       style: TextStyle(color: AppColors.pink),
                     ),
                     subtitle: Text(
                       goal.isCoupleGoal
-                          ? 'Send invitation to a new partner'
-                          : 'Turn this into a couple goal',
+                          ? context.l10n.sendInvitationNewPartner
+                          : context.l10n.turnIntoCoupleGoal,
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                     onTap: () {
@@ -600,13 +596,13 @@ class GoalDetailScreen extends ConsumerWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.delete_outline, color: Colors.red),
-                    title: const Text(
-                      'Delete Goal',
-                      style: TextStyle(color: Colors.red),
+                    title: Text(
+                      context.l10n.deleteGoalTitle,
+                      style: const TextStyle(color: Colors.red),
                     ),
-                    subtitle: const Text(
-                      'This action cannot be undone',
-                      style: TextStyle(color: Colors.red),
+                    subtitle: Text(
+                      context.l10n.thisActionCannotBeUndone,
+                      style: const TextStyle(color: Colors.red),
                     ),
                     onTap: () {
                       Navigator.pop(sheetContext);
@@ -617,13 +613,13 @@ class GoalDetailScreen extends ConsumerWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.exit_to_app, color: Colors.orange),
-                    title: const Text(
-                      'Leave Shared Goal',
-                      style: TextStyle(color: Colors.orange),
+                    title: Text(
+                      context.l10n.leaveSharedGoalTitle,
+                      style: const TextStyle(color: Colors.orange),
                     ),
-                    subtitle: const Text(
-                      'Stop syncing and cancel reminders',
-                      style: TextStyle(color: Colors.orange),
+                    subtitle: Text(
+                      context.l10n.leaveSharedGoalSubtitle,
+                      style: const TextStyle(color: Colors.orange),
                     ),
                     onTap: () {
                       Navigator.pop(sheetContext);
@@ -644,7 +640,7 @@ class GoalDetailScreen extends ConsumerWidget {
     );
   }
 
-  String _currentReminderText(SavingsGoal goal) {
+  String _currentReminderText(BuildContext context, SavingsGoal goal) {
     try {
       final config = MethodConfig.fromJson(
         jsonDecode(goal.methodConfig) as Map<String, dynamic>,
@@ -657,10 +653,10 @@ class GoalDetailScreen extends ConsumerWidget {
         final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
         final minute = time.minute.toString().padLeft(2, '0');
         final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-        return 'Currently $hour:$minute $period';
+        return context.l10n.currentlyAt('$hour:$minute $period');
       }
     } catch (_) {}
-    return 'Not set';
+    return context.l10n.notSet;
   }
 
   Future<void> _editReminderTime(
@@ -668,6 +664,7 @@ class GoalDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     SavingsGoal goal,
   ) async {
+    final l10n = context.l10n;
     TimeOfDay initial = const TimeOfDay(hour: 8, minute: 0);
     try {
       final config = MethodConfig.fromJson(
@@ -703,8 +700,8 @@ class GoalDetailScreen extends ConsumerWidget {
       goalId: goal.id,
       hour: picked.hour,
       minute: picked.minute,
-      title: 'Time to save!',
-      body: 'Don\'t forget your "${goal.name}" goal today.',
+      title: l10n.timeToSave,
+      body: l10n.notificationBody(goal.name),
     );
     debugPrint(
       '🔔 [GoalDetail] notification rescheduled to ${picked.hour}:${picked.minute}',
@@ -716,7 +713,7 @@ class GoalDetailScreen extends ConsumerWidget {
       final period = picked.period == DayPeriod.am ? 'AM' : 'PM';
       KiperaSnackBar.show(
         context,
-        message: 'Reminder updated to $hour:$minute $period',
+        message: l10n.reminderUpdated('$hour:$minute $period'),
         type: KiperaSnackType.success,
         icon: Icons.access_time_rounded,
       );
@@ -745,7 +742,7 @@ class GoalDetailScreen extends ConsumerWidget {
       if (context.mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Goal renamed to "$newName"',
+          message: context.l10n.goalRenamed(newName),
           type: KiperaSnackType.success,
           icon: Icons.edit_outlined,
         );
@@ -765,20 +762,20 @@ class GoalDetailScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text('Delete Goal'),
+          title: Text(context.l10n.deleteGoalTitle),
           content: Text(
-            'Are you sure you want to delete "${goal.name}"? This action cannot be undone.',
+            context.l10n.deleteGoalConfirmation(goal.name),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text(context.l10n.delete),
+              ),
           ],
         );
       },
@@ -795,7 +792,7 @@ class GoalDetailScreen extends ConsumerWidget {
       if (context.mounted) {
         KiperaSnackBar.show(
           context,
-          message: '"${goal.name}" has been deleted.',
+          message: context.l10n.goalDeletedSuccess(goal.name),
           type: KiperaSnackType.info,
           icon: Icons.delete_outline,
         );
@@ -817,19 +814,19 @@ class GoalDetailScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text('Leave Shared Goal'),
+          title: Text(context.l10n.leaveSharedGoalTitle),
           content: Text(
-            'Are you sure you want to leave "${goal.name}"? You will be removed from this couple goal and stop receiving reminders.',
+            context.l10n.leaveGoalConfirmation(goal.name),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
               style: TextButton.styleFrom(foregroundColor: Colors.orange),
-              child: const Text('Leave Goal'),
+              child: Text(context.l10n.leaveGoal),
             ),
           ],
         );
@@ -860,7 +857,7 @@ class GoalDetailScreen extends ConsumerWidget {
         if (context.mounted) {
           KiperaSnackBar.show(
             context,
-            message: 'You have left "${goal.name}".',
+            message: context.l10n.leftGoalSuccess(goal.name),
             type: KiperaSnackType.info,
             icon: Icons.exit_to_app,
           );
@@ -871,7 +868,7 @@ class GoalDetailScreen extends ConsumerWidget {
         if (context.mounted) {
           KiperaSnackBar.show(
             context,
-            message: 'Failed to leave goal.',
+            message: context.l10n.leftGoalError,
             type: KiperaSnackType.error,
           );
         }
@@ -931,7 +928,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
             children: [
               const Text('❤️', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
-              const Text('Invite Partner'),
+              Text(context.l10n.invitePartner),
             ],
           ),
           content: Column(
@@ -939,7 +936,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Goal: ${widget.goalName}',
+                context.l10n.goalLabelPrefix(widget.goalName),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -949,9 +946,9 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: "Partner's email address",
-                  prefixIcon: Icon(Icons.email_outlined),
+                decoration: InputDecoration(
+                  hintText: context.l10n.partnerEmailHint,
+                  prefixIcon: const Icon(Icons.email_outlined),
                 ),
               ),
             ],
@@ -959,7 +956,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
           actions: [
             TextButton(
               onPressed: _loading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: _loading
@@ -969,7 +966,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                       if (email.isEmpty || !email.contains('@')) {
                         KiperaSnackBar.show(
                           context,
-                          message: 'Please enter a valid email.',
+                          message: context.l10n.invalidEmail,
                           type: KiperaSnackType.warning,
                         );
                         return;
@@ -1006,7 +1003,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                           Navigator.pop(context);
                           KiperaSnackBar.show(
                             context,
-                            message: '❤️ Invitation sent to $email!',
+                            message: context.l10n.invitationSent(email),
                             type: KiperaSnackType.success,
                           );
                         }
@@ -1014,7 +1011,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                         if (context.mounted) {
                           KiperaSnackBar.show(
                             context,
-                            message: 'Could not send invitation. Try again.',
+                            message: context.l10n.invitationError,
                             type: KiperaSnackType.error,
                           );
                         }
@@ -1024,7 +1021,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                     },
               child: _loading
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text('Send', style: TextStyle(color: AppColors.pink, fontWeight: FontWeight.w600)),
+                  : Text(context.l10n.send, style: const TextStyle(color: AppColors.pink, fontWeight: FontWeight.w600)),
             ),
           ],
         );
@@ -1061,16 +1058,16 @@ class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('Edit Goal Name'),
+      title: Text(context.l10n.editGoalName),
       content: TextField(
         controller: _controller,
         autofocus: true,
-        decoration: const InputDecoration(hintText: 'Goal name'),
+        decoration: InputDecoration(hintText: context.l10n.goalNameHint),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -1079,7 +1076,7 @@ class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
               Navigator.pop(context, text);
             }
           },
-          child: const Text('Save'),
+          child: Text(context.l10n.save),
         ),
       ],
     );

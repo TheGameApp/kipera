@@ -29,7 +29,7 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             // Hello greeting
             Text(
-              'Hello $displayName',
+              context.l10n.helloUser(displayName),
               style: context.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
@@ -84,7 +84,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'View profile',
+                            context.l10n.viewProfile,
                             style: context.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -106,7 +106,7 @@ class SettingsScreen extends ConsumerWidget {
 
             // Premium Plan section
             Text(
-              'Premium Plan',
+              context.l10n.premiumPlan,
               style: context.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
@@ -137,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "You're on Free Plan",
+                            context.l10n.freePlanStatus,
                             style: context.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isDark
@@ -168,7 +168,7 @@ class SettingsScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Text(
-                        'Upgrade',
+                        context.l10n.upgrade,
                         style: TextStyle(
                           color: isDark
                               ? AppColors.backgroundDark
@@ -186,7 +186,7 @@ class SettingsScreen extends ConsumerWidget {
 
             // Account Settings section
             Text(
-              'Account Settings',
+              context.l10n.accountSettings,
               style: context.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
@@ -294,7 +294,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Select Language',
+                            context.l10n.selectLanguage,
                             style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -334,7 +334,7 @@ class SettingsScreen extends ConsumerWidget {
             // Privacy Policy
             _SettingsTile(
               icon: Icons.shield_outlined,
-              title: 'Privacy Policy',
+              title: context.l10n.privacyPolicy,
               trailing: Icon(
                 Icons.chevron_right,
                 color: isDark
@@ -354,7 +354,7 @@ class SettingsScreen extends ConsumerWidget {
                   debugPrint('🔐 [Settings] logout tapped');
                   KiperaSnackBar.show(
                     context,
-                    message: 'Logging out...',
+                    message: context.l10n.loggingOut,
                     type: KiperaSnackType.info,
                     icon: Icons.logout,
                     duration: const Duration(seconds: 2),

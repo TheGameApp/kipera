@@ -43,7 +43,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Unlock exclusive challenges and advanced habit insights.',
+                context.l10n.premiumSubtitle,
                 style: context.textTheme.bodyLarge?.copyWith(
                   color: AppColors.textSecondary,
                   height: 1.4,
@@ -82,7 +82,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Premium Upgrade',
+                      context.l10n.premiumUpgradeTitle,
                       style: context.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: textColor,
@@ -90,9 +90,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Get access to all 8 saving methods, unlimited goals, '
-                      'advanced statistics, cloud sync, custom notifications, '
-                      'and an ad-free experience.',
+                      context.l10n.premiumUpgradeDesc,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         height: 1.5,
@@ -120,7 +118,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _PlanRadioTile(
                 title: context.l10n.yearlyPlan,
                 price: '\$39.99${context.l10n.perYear}',
-                subtitle: 'Save 30%',
+                subtitle: context.l10n.savePercentage('30%'),
                 isSelected: _selectedPlan == 1,
                 onTap: () {
                   debugPrint('📱 [Premium] plan selected — yearly');
@@ -148,7 +146,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     elevation: 0,
                   ),
                   child: Text(
-                    'Subscribe',
+                    context.l10n.subscribe,
                     style: context.textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,

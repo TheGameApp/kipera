@@ -1,141 +1,457 @@
 {
   "@@locale": "en",
-  "appName": "Kipera",
-  "onboardingTitle1": "Save Smarter",
-  "onboardingDesc1": "Choose from 8 different saving methods that fit your lifestyle",
-  "onboardingTitle2": "Track Your Progress",
-  "onboardingDesc2": "Visualize your savings with heatmaps and statistics",
-  "onboardingTitle3": "Achieve Your Goals",
-  "onboardingDesc3": "Unlock achievements and stay motivated with daily streaks",
-  "getStarted": "Get Started",
-  "next": "Next",
-  "skip": "Skip",
-  "login": "Log In",
-  "register": "Sign Up",
-  "email": "Email",
-  "password": "Password",
-  "displayName": "Display Name",
-  "forgotPassword": "Forgot Password?",
-  "resetPassword": "Reset Password",
-  "dontHaveAccount": "Don't have an account? Sign Up",
-  "alreadyHaveAccount": "Already have an account? Log In",
-  "sendResetLink": "Send Reset Link",
-  "orContinueWith": "Or continue with",
-  "google": "Google",
-  "home": "Home",
-  "statistics": "Statistics",
-  "calendar": "Calendar",
-  "settings": "Settings",
-  "createGoal": "Create Goal",
-  "goalName": "Goal Name",
-  "targetAmount": "Target Amount",
-  "selectMethod": "Select Method",
-  "preview": "Preview",
-  "selectColor": "Select Color",
-  "selectIcon": "Select Icon",
-  "confirm": "Confirm",
-  "cancel": "Cancel",
-  "save": "Save",
-  "delete": "Delete",
-  "edit": "Edit",
-  "pause": "Pause",
-  "resume": "Resume",
   "abandon": "Abandon",
-  "todaysSaving": "Today's Saving",
-  "checkIn": "Check In",
-  "markAsSaved": "Mark as Saved",
-  "streak": "Streak",
-  "days": "days",
-  "totalSaved": "Total Saved",
-  "remaining": "Remaining",
-  "progress": "Progress",
-  "daysLeft": "Days Left",
+  "aboutKipera": "About Kipera",
+  "accept": "Accept",
+  "accountSettings": "Account Settings",
+  "achievementUnlocked": "Achievement Unlocked!",
   "achievements": "Achievements",
-  "unlocked": "Unlocked",
-  "locked": "Locked",
-  "darkMode": "Dark Mode",
-  "lightMode": "Light Mode",
-  "language": "Language",
-  "notifications": "Notifications",
-  "reminderTime": "Reminder Time",
-  "premium": "Premium",
-  "upgradeToPremium": "Upgrade to Premium",
-  "monthlyPlan": "Monthly Plan",
-  "yearlyPlan": "Yearly Plan",
-  "perMonth": "/month",
-  "perYear": "/year",
-  "progressive": "Progressive",
-  "progressiveDesc": "Start small, increase daily. Day 1=$1, Day 2=$2...",
-  "fixedDaily": "Fixed Daily",
-  "fixedDailyDesc": "Same amount every day. Simple and consistent.",
-  "reverseProgressive": "Reverse Progressive",
-  "reverseProgressiveDesc": "Start high, decrease daily. High motivation early on.",
-  "weeklyChallenge": "Weekly Challenge",
-  "weeklyChallengeDesc": "Increase your saving each week.",
-  "randomEnvelopes": "Random (Envelopes)",
-  "randomEnvelopesDesc": "Random amounts each day. Fun and surprising!",
-  "multiplier": "Multiplier",
-  "multiplierDesc": "Exponential growth with a daily cap.",
+  "activeGoalsLabel": "Active Goals",
+  "activityLabel": "Activity",
+  "alerts": "Alerts",
+  "allTime": "All Time",
+  "almostThere": "Almost There!",
+  "almostThereDesc": "Reach 75% of your goal",
+  "alreadyCheckedIn": "You already checked in today! Come back tomorrow.",
+  "alreadyHaveAccount": "Already have an account? Log In",
+  "alreadyHaveAccountStart": "Already have an account? ",
+  "appName": "Kipera",
   "biWeeklySteps": "Bi-Weekly Steps",
   "biWeeklyStepsDesc": "Increase amount every two weeks.",
-  "penaltyMethod": "Penalty",
-  "penaltyMethodDesc": "Save a fixed amount each time you do a bad habit.",
-  "freeMethods": "Free",
-  "premiumMethods": "Premium",
+  "biweeklyChampion": "Biweekly Champion",
+  "biweeklyChampionDesc": "Save for 14 days in a row",
+  "byGoal": "By Goal",
+  "calendar": "Calendar",
+  "cancel": "Cancel",
+  "centurion": "Centurion",
+  "centurionDesc": "Save for 100 days in a row",
+  "checkIn": "Check In",
+  "checkInGoalNotFound": "Goal not found. It may have been deleted.",
+  "chooseReminderTime": "Choose a daily reminder time to stay on track.",
+  "club100": "$100 Club",
+  "club1000": "$1,000 Club",
+  "club1000Desc": "Save $1,000 in total",
+  "club100Desc": "Save $100 in total",
+  "comeback": "Triumphant Return",
+  "comebackDesc": "Resume saving after 3+ days off",
+  "confirm": "Confirm",
+  "congratulations": "Congratulations!",
+  "coupleGoalLabel": "Couple Goal",
+  "createAccount": "Create Account",
+  "createGoal": "Create Goal",
+  "createGoalAmountValidation": "Set a target amount greater than $0 for your goal.",
+  "createGoalError": "Something went wrong creating your goal. Please try again.",
+  "createGoalLoginRequired": "You need to be logged in to create a goal.",
+  "createGoalNameValidation": "Give your goal a name so you can identify it easily.",
+  "createGoalPartnerEmailValidation": "Enter a valid email address for your partner.",
+  "createGoalTimeValidation": "Choose a daily reminder time to stay on track.",
+  "createGoalValidation": "Please enter a name and amount",
+  "createYourFirstGoal": "Create your first savings goal!",
+  "currentlyAt": "Currently {time}",
+  "@currentlyAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyReminderAt": "Daily reminder at {time}",
+  "@dailyReminderAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "darkMode": "Dark Mode",
+  "dayLabel": "Day {number}",
+  "@dayLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dayLeftToGoal": "day left to reach your goal",
+  "dayOfTotal": "Day {completed} of {total}",
+  "@dayOfTotal": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "days": "days",
+  "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decline": "Decline",
+  "defaultUserName": "Saver",
+  "delete": "Delete",
+  "deleteAccount": "Delete Account",
+  "deleteGoalConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteGoalConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteGoalTitle": "Delete Goal",
+  "displayName": "Display Name",
+  "dontHaveAccount": "Don't have an account? Sign Up",
+  "dontHaveAccountStart": "Don't have an account? ",
+  "edit": "Edit",
+  "editGoalName": "Edit Goal Name",
+  "editReminderTime": "Edit Reminder Time",
+  "email": "Email",
+  "enterEmail": "Enter your email",
+  "enterName": "Enter your name",
+  "enterNameAndAmount": "Please enter a goal name and target amount to continue.",
+  "enterPartnerEmail": "Enter a valid email address for your partner.",
+  "enterPassword": "Enter your password",
+  "errorCreatingGoal": "Something went wrong creating your goal. Please try again.",
+  "errorPrefix": "Error: {error}",
+  "@errorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "estimatedDays": "Estimated: {days} days",
   "@estimatedDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "estimatedTotal": "Total: ${amount}",
   "@estimatedTotal": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {
+        "type": "String"
+      }
     }
   },
-  "today": "Today",
-  "thisWeek": "This Week",
-  "thisMonth": "This Month",
-  "allTime": "All Time",
-  "noGoalsYet": "No goals yet",
-  "createYourFirstGoal": "Create your first savings goal!",
-  "congratulations": "Congratulations!",
-  "achievementUnlocked": "Achievement Unlocked!",
-  "goalCompleted": "Goal Completed!",
+  "expectedLabel": "Expected: ",
+  "fillInformation": "Fill your information below",
   "firstStep": "First Step",
   "firstStepDesc": "Complete your first saving",
-  "streak3": "3-Day Streak",
-  "streak3Desc": "Save for 3 days in a row",
-  "weeklyWarrior": "Weekly Warrior",
-  "weeklyWarriorDesc": "Save for 7 days in a row",
-  "biweeklyChampion": "Biweekly Champion",
-  "biweeklyChampionDesc": "Save for 14 days in a row",
-  "monthlyMaster": "Monthly Master",
-  "monthlyMasterDesc": "Save for 30 days in a row",
-  "centurion": "Centurion",
-  "centurionDesc": "Save for 100 days in a row",
-  "quarterWay": "25% There",
-  "quarterWayDesc": "Reach 25% of your goal",
-  "halfWay": "Halfway!",
-  "halfWayDesc": "Reach 50% of your goal",
-  "almostThere": "Almost There!",
-  "almostThereDesc": "Reach 75% of your goal",
+  "fixedDaily": "Fixed Daily",
+  "fixedDailyDesc": "Same amount every day. Simple and consistent.",
+  "fixedMethodOnboardingDesc": "Save the same amount every day. Simple and consistent.",
+  "fixedMethodTitle": "Fixed Daily",
+  "forgotPassword": "Forgot Password?",
+  "forgotPasswordDesc": "Enter your email address to get the password reset link.",
+  "freeMethods": "Free",
+  "freePlanStatus": "You're on Free Plan",
+  "getStarted": "Get Started",
+  "giveGoalName": "Give your goal a name so you can identify it easily.",
   "goalAchieved": "Goal Achieved!",
   "goalAchievedDesc": "Complete 100% of your goal",
-  "club100": "$100 Club",
-  "club100Desc": "Save $100 in total",
-  "club1000": "$1,000 Club",
-  "club1000Desc": "Save $1,000 in total",
-  "perfectWeek": "Perfect Week",
-  "perfectWeekDesc": "Save every day for a full week",
+  "goalAchievedSubtitle": "Complete 100% of a goal",
+  "goalAchievedTitle": "Goal Achieved!",
+  "goalCompleted": "Goal Completed!",
+  "goalCreated": "\"{name}\" created! Your saving journey starts now.",
+  "@goalCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalDeletedSuccess": "\"{name}\" has been deleted.",
+  "@goalDeletedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalLabelPrefix": "Goal: {name}",
+  "@goalLabelPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalName": "Goal Name",
+  "goalNameExample": "e.g., Trip to Europe",
+  "goalNameHint": "Goal name",
+  "goalNotFound": "Goal not found",
+  "goalReachedLabel": "Goal reached! ",
+  "goalRenamed": "Goal renamed to \"{name}\"",
+  "@goalRenamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalsProgress": "Goals Progress",
+  "google": "Google",
+  "halfWay": "Halfway!",
+  "halfWayDesc": "Reach 50% of your goal",
+  "helloUser": "Hello, {name}!",
+  "@helloUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "home": "Home",
+  "invalidEmail": "Enter a valid email",
+  "invalidEmailError": "Please enter a valid email.",
+  "invitationAcceptedError": "Could not accept invitation. Try again.",
+  "invitationAcceptedSuccess": "❤️ Invitation accepted! You can now save together.",
+  "invitationDeclinedError": "Could not decline invitation. Try again.",
+  "invitationDeclinedSuccess": "Invitation declined.",
+  "invitationEmptyState": "When someone invites you to save\ntogether, it will appear here.",
+  "invitationError": "Could not send invitation. Try again.",
+  "invitationSent": "❤️ Invitation sent to {email}!",
+  "@invitationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationSentError": "Could not send invitation. Try again.",
+  "invitationSentSuccess": "❤️ Invitation sent to {email}!",
+  "@invitationSentSuccess": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteAnotherPartner": "Invite Another Partner",
+  "invitePartner": "Invite Partner",
+  "language": "Language",
+  "leaveGoal": "Leave Goal",
+  "leaveGoalConfirmation": "Are you sure you want to leave \"{name}\"? You will be removed from this couple goal and stop receiving reminders.",
+  "@leaveGoalConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveSharedGoalSubtitle": "Stop syncing and cancel reminders",
+  "leaveSharedGoalTitle": "Leave Shared Goal",
+  "leftGoalError": "Failed to leave goal.",
+  "leftGoalSuccess": "You have left \"{name}\".",
+  "@leftGoalSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lightMode": "Light Mode",
+  "loadInvitationsError": "Could not load invitations",
+  "locked": "Locked",
+  "loggingOut": "Logging out...",
+  "login": "Log In",
+  "loginLink": "Log In",
+  "loginRequired": "You need to be logged in to create a goal.",
+  "loginToAccount": "Login to your account",
+  "logout": "Log Out",
+  "markAsSaved": "Mark as Saved",
+  "maybeLater": "Maybe Later",
+  "monthlyMaster": "Monthly Master",
+  "monthlyMasterDesc": "Save for 30 days in a row",
+  "monthlyPlan": "Monthly Plan",
+  "multiplier": "Multiplier",
+  "multiplierDesc": "Exponential growth with a daily cap.",
+  "multiplierMethodOnboardingDesc": "Exponential growth with a daily cap for big results.",
+  "multiplierMethodTitle": "Multiplier",
+  "next": "Next",
+  "noGoalsYet": "No goals yet",
+  "noPendingInvitations": "No pending invitations",
+  "notSet": "Not set",
+  "notificationBody": "Don't forget your \"{name}\" goal today.",
+  "@notificationBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationBodyJoint": "Don't forget your joint savings for \"{name}\" today.",
+  "@notificationBodyJoint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifications": "Notifications",
+  "ofLabel": "of ",
+  "ok": "OK",
+  "onboardingDesc1": "Choose from 8 different saving methods that fit your lifestyle",
+  "onboardingDesc2": "Visualize your savings with heatmaps and statistics",
+  "onboardingDesc3": "Unlock achievements and stay motivated with daily streaks",
+  "onboardingEducation": "Education",
+  "onboardingEmergency": "Emergency Fund",
+  "onboardingFun": "Fun & Entertainment",
+  "onboardingGoalSubtitle": "Choose what you'd like to focus on first.",
+  "onboardingGoalTitle": "What do you want\nto save for?",
+  "onboardingHome": "Home",
+  "onboardingMethodSubtitle": "Pick a method that fits your lifestyle.",
+  "onboardingMethodTitle": "Save Smarter",
+  "onboardingTech": "Tech & Gadgets",
+  "onboardingTitle1": "Save Smarter",
+  "onboardingTitle2": "Track Your Progress",
+  "onboardingTitle3": "Achieve Your Goals",
+  "onboardingTrackSubtitle": "Visualize savings and unlock achievements.",
+  "onboardingTrackTitle": "Track Your\nProgress",
+  "onboardingTravel": "Travel",
+  "orContinueWith": "Or continue with",
+  "orLoginWith": "or Login with",
+  "orSignUpWith": "or Sign Up with",
+  "partnerEmailHint": "Partner's email address",
+  "partnerInviteInfo": "Your partner will receive an invitation to join this goal.",
+  "partnerLabel": "Partner",
+  "password": "Password",
+  "passwordMinChar": "Min 6 characters",
+  "pause": "Pause",
+  "penaltyMethod": "Penalty",
+  "penaltyMethodDesc": "Save a fixed amount each time you do a bad habit.",
+  "perMonth": "/month",
+  "perYear": "/year",
   "perfectMonth": "Perfect Month",
   "perfectMonthDesc": "Save every day for a full month",
-  "comeback": "Triumphant Return",
-  "comebackDesc": "Resume saving after 3+ days off",
+  "perfectWeek": "Perfect Week",
+  "perfectWeekDesc": "Save every day for a full week",
+  "premium": "Premium",
+  "premiumMethods": "Premium",
+  "premiumPlan": "Premium Plan",
+  "premiumSubtitle": "Unlock exclusive challenges and advanced habit insights.",
+  "premiumUpgradeDesc": "Get access to all 8 saving methods, unlimited goals, advanced statistics, cloud sync, custom notifications, and an ad-free experience.",
+  "premiumUpgradeTitle": "Premium Upgrade",
+  "preview": "Preview",
+  "privacyPolicy": "Privacy Policy",
+  "proLabel": "PRO",
   "profile": "Profile",
-  "logout": "Log Out",
-  "deleteAccount": "Delete Account",
+  "progress": "Progress",
+  "progressive": "Progressive",
+  "progressiveDesc": "Start small, increase daily. Day 1=$1, Day 2=$2...",
+  "progressiveMethodOnboardingDesc": "Start small and increase daily. Day 1 = $1, Day 2 = $2...",
+  "progressiveMethodTitle": "Progressive",
+  "quarterWay": "25% There",
+  "quarterWayDesc": "Reach 25% of your goal",
+  "randomEnvelopes": "Random (Envelopes)",
+  "randomEnvelopesDesc": "Random amounts each day. Fun and surprising!",
+  "randomMethodOnboardingDesc": "Random amounts each day. Fun and surprising!",
+  "randomMethodTitle": "Random Envelopes",
+  "reachGoalInPrefix": "You can reach your goal in just ",
+  "reachGoalInSuffix": "!",
+  "reachGoalRemaining": "{count, plural, =1 {day left to reach your goal} other {days left to reach your goal}}",
+  "@reachGoalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "register": "Sign Up",
+  "remaining": "Remaining",
+  "rememberMe": "Remember me",
+  "reminderTime": "Reminder Time",
+  "reminderUpdated": "Reminder updated to {time}",
+  "@reminderUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredReminder": "Required — keep yourself on track",
+  "resetLinkSent": "Check your email for a reset link.",
+  "resetPassword": "Reset Password",
+  "resume": "Resume",
+  "reverseProgressive": "Reverse Progressive",
+  "reverseProgressiveDesc": "Start high, decrease daily. High motivation early on.",
+  "save": "Save",
+  "savePercentage": "Save {percentage}",
+  "@savePercentage": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "saveWithPartner": "Save together with your partner",
+  "savingHeatmap": "Saving Heatmap",
+  "selectColor": "Select Color",
+  "selectIcon": "Select Icon",
+  "selectLanguage": "Select Language",
+  "selectMethod": "Select Method",
+  "send": "Send",
+  "sendInvitationNewPartner": "Send invitation to a new partner",
+  "sendResetLink": "Send Reset Link",
+  "setTargetAmount": "Set a target amount greater than $0 for your goal.",
+  "settings": "Settings",
+  "signUpLink": "Sign Up",
+  "skip": "Skip",
+  "someone": "Someone",
+  "statistics": "Statistics",
+  "stepOfTotal": "Step {current} of {total}",
+  "@stepOfTotal": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "streak": "Streak",
+  "streak3": "3-Day Streak",
+  "streak3Desc": "Save for 3 days in a row",
+  "streak7Subtitle": "Save for 7 days in a row",
+  "streak7Title": "7-Day Streak",
+  "subscribe": "Subscribe",
+  "tapToSetReminder": "Tap to set a reminder time",
+  "targetAmount": "Target Amount",
+  "targetAmountExample": "1000",
+  "thisActionCannotBeUndone": "This action cannot be undone",
+  "thisMonth": "This Month",
+  "thisWeek": "This Week",
+  "timeToSave": "Time to save!",
+  "today": "Today",
+  "todayLabel": "Today",
+  "todaysSaving": "Today's Saving",
+  "totalLabel": "Total: ",
+  "totalSaved": "Total Saved",
+  "totalTargetLabel": "Total Target",
+  "turnIntoCoupleGoal": "Turn this into a couple goal",
+  "unknownGoal": "Unknown Goal",
+  "unlocked": "Unlocked",
+  "upgrade": "Upgrade",
+  "upgradeToPremium": "Upgrade to Premium",
+  "userLabel": "You",
   "version": "Version",
-  "aboutKipera": "About Kipera"
+  "viewProfile": "View profile",
+  "weeklyChallenge": "Weekly Challenge",
+  "weeklyChallengeDesc": "Increase your saving each week.",
+  "weeklyWarrior": "Weekly Warrior",
+  "weeklyWarriorDesc": "Save for 7 days in a row",
+  "welcomeBack": "Welcome back",
+  "yearlyPlan": "Yearly Plan",
+  "yesterdayLabel": "Yesterday"
 }

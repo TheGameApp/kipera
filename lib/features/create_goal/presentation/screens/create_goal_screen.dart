@@ -88,7 +88,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (name.isEmpty && amountText.isEmpty) {
         KiperaSnackBar.show(
           context,
-          message: 'Please enter a goal name and target amount to continue.',
+        message: context.l10n.enterNameAndAmount,
           type: KiperaSnackType.warning,
         );
         return false;
@@ -96,7 +96,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (name.isEmpty) {
         KiperaSnackBar.show(
           context,
-          message: 'Give your goal a name so you can identify it easily.',
+          message: context.l10n.giveGoalName,
           type: KiperaSnackType.warning,
           icon: Icons.edit_outlined,
         );
@@ -105,7 +105,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (amountText.isEmpty || amount == null || amount <= 0) {
         KiperaSnackBar.show(
           context,
-          message: 'Set a target amount greater than \$0 for your goal.',
+          message: context.l10n.setTargetAmount,
           type: KiperaSnackType.warning,
           icon: Icons.attach_money,
         );
@@ -115,7 +115,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         setState(() {}); // trigger visual update on reminder field
         KiperaSnackBar.show(
           context,
-          message: 'Choose a daily reminder time to stay on track.',
+          message: context.l10n.chooseReminderTime,
           type: KiperaSnackType.warning,
           icon: Icons.notifications_outlined,
         );
@@ -126,7 +126,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         if (email.isEmpty || !email.contains('@')) {
           KiperaSnackBar.show(
             context,
-            message: 'Enter a valid email address for your partner.',
+            message: context.l10n.enterPartnerEmail,
             type: KiperaSnackType.warning,
             icon: Icons.email_outlined,
           );
@@ -190,12 +190,13 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   Future<void> _createGoal() async {
     if (_isCreating) return;
 
+    final l10n = context.l10n;
     final user = ref.read(currentUserProvider);
     if (user == null) {
       debugPrint('❌ [CreateGoal] no user found — aborting');
       KiperaSnackBar.show(
         context,
-        message: 'You need to be logged in to create a goal.',
+        message: l10n.loginRequired,
         type: KiperaSnackType.error,
         icon: Icons.person_off_outlined,
       );
@@ -255,8 +256,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
         goalId: goalId,
         hour: _reminderTime!.hour,
         minute: _reminderTime!.minute,
-        title: 'Time to save!',
-        body: 'Don\'t forget your "$name" goal today.',
+        title: l10n.timeToSave,
+        body: l10n.notificationBody(name),
       );
       await notifService.debugListPending();
 
@@ -284,7 +285,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: '"$name" created! Your saving journey starts now.',
+          message: l10n.goalCreated(name),
           type: KiperaSnackType.success,
         );
         // Small delay so user sees the success message
@@ -297,7 +298,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Something went wrong creating your goal. Please try again.',
+          message: l10n.errorCreatingGoal,
           type: KiperaSnackType.error,
         );
       }
@@ -329,7 +330,11 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   Widget build(BuildContext context) {
     final isPremium = ref.watch(isPremiumProvider);
 
-    final stepTitles = ['Step 1 of 3', 'Step 2 of 3', 'Step 3 of 3'];
+    final stepTitles = [
+      context.l10n.stepOfTotal(1, 3),
+      context.l10n.stepOfTotal(2, 3),
+      context.l10n.stepOfTotal(3, 3)
+    ];
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -512,9 +517,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              hintText: 'e.g., Trip to Europe',
-              prefixIcon: Icon(Icons.edit_outlined),
+            decoration: InputDecoration(
+              hintText: context.l10n.goalNameExample,
+              prefixIcon: const Icon(Icons.edit_outlined),
             ),
           ),
           const SizedBox(height: 24),
@@ -530,7 +535,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           ),
           const SizedBox(height: 24),
           // Reminder Time
-          _buildRequiredLabel('Reminder Time'),
+          _buildRequiredLabel(context.l10n.reminderTime),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _pickReminderTime,
@@ -566,7 +571,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                         Text(
                           _reminderTime != null
                               ? _formatTime(_reminderTime!)
-                              : 'Tap to set a reminder time',
+                              : context.l10n.tapToSetReminder,
                           style: context.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
                             color: _reminderTime != null
@@ -576,7 +581,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                         ),
                         if (_reminderTime == null)
                           Text(
-                            'Required — keep yourself on track',
+                            context.l10n.requiredReminder,
                             style: context.textTheme.bodySmall?.copyWith(
                               color: AppColors.warning.withValues(alpha: 0.8),
                               fontSize: 11,
@@ -626,13 +631,13 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Couple Goal',
+                            context.l10n.coupleGoalLabel,
                             style: context.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
-                            'Save together with your partner',
+                            context.l10n.saveWithPartner,
                             style: context.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -657,7 +662,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                     controller: _partnerEmailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      hintText: "Partner's email address",
+                      hintText: context.l10n.partnerEmailHint,
                       prefixIcon: const Icon(Icons.email_outlined),
                       prefixIconColor: AppColors.pink,
                       focusedBorder: OutlineInputBorder(
@@ -674,7 +679,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your partner will receive an invitation to join this goal.',
+                    context.l10n.partnerInviteInfo,
                     style: context.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -742,22 +747,22 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                     : AppColors.textLight,
               ),
               children: [
-                const TextSpan(text: 'You can reach your goal in just '),
+                TextSpan(text: context.l10n.reachGoalInPrefix),
                 TextSpan(
-                  text: '$days days',
-                  style: TextStyle(
+                  text: context.l10n.daysCount(days),
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                     color: AppColors.purple,
                   ),
                 ),
-                const TextSpan(text: '!'),
+                TextSpan(text: context.l10n.reachGoalInSuffix),
               ],
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Total: \$${total.toStringAsFixed(2)}',
+            '${context.l10n.totalLabel}\$${total.toStringAsFixed(2)}',
             style: context.textTheme.bodySmall?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -843,7 +848,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'PRO',
+                                context.l10n.proLabel,
                                 style: context.textTheme.labelSmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -981,7 +986,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       child: Column(
         children: [
           Text(
-            'Preview',
+            context.l10n.preview,
             style: context.textTheme.labelMedium?.copyWith(
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
@@ -1003,7 +1008,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            name.isEmpty ? 'Goal Name' : name,
+            name.isEmpty ? context.l10n.goalName : name,
             style: context.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: AppColors.textLight,

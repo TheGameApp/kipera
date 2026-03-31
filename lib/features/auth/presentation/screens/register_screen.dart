@@ -136,7 +136,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                 // Title
                 Text(
-                  'Create Account',
+                  context.l10n.createAccount,
                   style: context.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.textDark : AppColors.textLight,
@@ -145,7 +145,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Fill your information below',
+                  context.l10n.fillInformation,
                   style: context.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -154,33 +154,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 36),
 
                 // Name field
-                _buildLabel('Name'),
+                _buildLabel(context.l10n.displayName),
                 TextFormField(
                   controller: _nameController,
-                  decoration: _inputDecoration(hintText: 'Enter your name'),
+                  decoration: _inputDecoration(hintText: context.l10n.enterName),
                   validator: (v) =>
-                      v == null || v.isEmpty ? 'Enter your name' : null,
+                      v == null || v.isEmpty ? context.l10n.enterName : null,
                 ),
                 const SizedBox(height: 20),
 
                 // Email field
-                _buildLabel('Email'),
+                _buildLabel(context.l10n.email),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration(hintText: 'Enter your email'),
+                  decoration: _inputDecoration(hintText: context.l10n.enterEmail),
                   validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                      v == null || !v.contains('@') ? context.l10n.invalidEmail : null,
                 ),
                 const SizedBox(height: 20),
 
                 // Password field
-                _buildLabel('Password'),
+                _buildLabel(context.l10n.password),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: _inputDecoration(
-                    hintText: 'Enter your password',
+                    hintText: context.l10n.enterPassword,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -194,7 +194,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   validator: (v) =>
-                      v == null || v.length < 6 ? 'Min 6 characters' : null,
+                      v == null || v.length < 6 ? context.l10n.passwordMinChar : null,
                 ),
                 const SizedBox(height: 32),
 
@@ -230,7 +230,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'or Sign Up with',
+                        context.l10n.orSignUpWith,
                         style: context.textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -281,7 +281,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
+                      context.l10n.alreadyHaveAccountStart,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -292,7 +292,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         context.go('/login');
                       },
                       child: Text(
-                        'Log In',
+                        context.l10n.loginLink,
                         style: context.textTheme.bodyMedium?.copyWith(
                           color: AppColors.purple,
                           fontWeight: FontWeight.bold,

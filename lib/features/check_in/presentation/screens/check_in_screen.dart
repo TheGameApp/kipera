@@ -39,7 +39,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Goal not found. It may have been deleted.',
+          message: context.l10n.checkInGoalNotFound,
           type: KiperaSnackType.error,
         );
         context.pop();
@@ -65,7 +65,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
         setState(() => _saving = false);
         KiperaSnackBar.show(
           context,
-          message: 'You already checked in today! Come back tomorrow.',
+          message: context.l10n.alreadyCheckedIn,
           type: KiperaSnackType.info,
           icon: Icons.calendar_today,
         );
@@ -234,7 +234,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
               Navigator.of(ctx).pop();
               context.pop();
             },
-            child: const Text('OK'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),
@@ -251,10 +251,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
           appBar: AppBar(title: Text(context.l10n.checkIn)),
           body: goalAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error: $e')),
+            error: (e, _) => Center(child: Text(context.l10n.errorPrefix(e.toString()))),
             data: (goal) {
               if (goal == null) {
-                return const Center(child: Text('Goal not found'));
+                return Center(child: Text(context.l10n.goalNotFound));
               }
 
               final method = SavingMethod.values.firstWhere(
@@ -316,7 +316,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${context.l10n.todaysSaving} (Day $dayNumber)',
+                              '${context.l10n.todaysSaving} (${context.l10n.dayLabel(dayNumber)})',
                               style: context.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textSecondary,
                               ),

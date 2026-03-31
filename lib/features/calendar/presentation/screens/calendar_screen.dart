@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/heatmap_utils.dart';
 import '../../../../core/widgets/heatmap_widget.dart';
+import 'package:intl/intl.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -52,13 +53,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         _selectedMonth.year,
                         _selectedMonth.month - 1,
                       );
-                      debugPrint('📱 [Calendar] navigated to previous month — ${_monthName(_selectedMonth.month)} ${_selectedMonth.year}');
+                      debugPrint('📱 [Calendar] navigated to previous month — ${DateFormat.MMMM(context.l10n.localeName).format(_selectedMonth)} ${_selectedMonth.year}');
                     });
                   },
                   icon: const Icon(Icons.chevron_left),
                 ),
                 Text(
-                  '${_monthName(_selectedMonth.month)} ${_selectedMonth.year}',
+                  DateFormat.yMMMM(context.l10n.localeName).format(_selectedMonth),
                   style: context.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -70,7 +71,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         _selectedMonth.year,
                         _selectedMonth.month + 1,
                       );
-                      debugPrint('📱 [Calendar] navigated to next month — ${_monthName(_selectedMonth.month)} ${_selectedMonth.year}');
+                      debugPrint('📱 [Calendar] navigated to next month — ${DateFormat.MMMM(context.l10n.localeName).format(_selectedMonth)} ${_selectedMonth.year}');
                     });
                   },
                   icon: const Icon(Icons.chevron_right),
@@ -86,7 +87,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             // Per goal heatmaps
             goalsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Text(context.l10n.errorPrefix(e.toString())),
               data: (goals) {
                 return Column(
                   children: goals.map((goal) {
@@ -156,7 +157,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final firstDay = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
     final startWeekday = firstDay.weekday % 7; // 0 = Sunday
 
-    final dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    final dayLabels = DateFormat.E(context.l10n.localeName).dateSymbols.NARROWWEEKDAYS;
 
     return Column(
       children: [
@@ -221,11 +222,4 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  String _monthName(int month) {
-    const names = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return names[month];
-  }
 }

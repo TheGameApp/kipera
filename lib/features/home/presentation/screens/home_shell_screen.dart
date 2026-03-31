@@ -79,7 +79,7 @@ class HomeShellScreen extends ConsumerWidget {
               _NavBarItemWithBadge(
                 icon: Icons.notifications_none_rounded,
                 activeIcon: Icons.notifications_rounded,
-                label: 'Alerts',
+                label: context.l10n.alerts,
                 isSelected: currentIndex == 1,
                 isDark: isDark,
                 badgeCount: pendingCount,

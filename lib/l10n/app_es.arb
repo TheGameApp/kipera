@@ -1,131 +1,457 @@
 {
   "@@locale": "es",
-  "appName": "Kipera",
-  "onboardingTitle1": "Ahorra Inteligente",
-  "onboardingDesc1": "Elige entre 8 métodos de ahorro que se adaptan a tu estilo de vida",
-  "onboardingTitle2": "Sigue Tu Progreso",
-  "onboardingDesc2": "Visualiza tus ahorros con heatmaps y estadísticas",
-  "onboardingTitle3": "Alcanza Tus Metas",
-  "onboardingDesc3": "Desbloquea logros y mantente motivado con rachas diarias",
-  "getStarted": "Comenzar",
-  "next": "Siguiente",
-  "skip": "Omitir",
-  "login": "Iniciar Sesión",
-  "register": "Registrarse",
-  "email": "Correo electrónico",
-  "password": "Contraseña",
-  "displayName": "Nombre",
-  "forgotPassword": "¿Olvidaste tu contraseña?",
-  "resetPassword": "Restablecer Contraseña",
-  "dontHaveAccount": "¿No tienes cuenta? Regístrate",
-  "alreadyHaveAccount": "¿Ya tienes cuenta? Inicia Sesión",
-  "sendResetLink": "Enviar enlace",
-  "orContinueWith": "O continuar con",
-  "google": "Google",
-  "home": "Inicio",
-  "statistics": "Estadísticas",
-  "calendar": "Calendario",
-  "settings": "Ajustes",
-  "createGoal": "Crear Meta",
-  "goalName": "Nombre de la Meta",
-  "targetAmount": "Monto Objetivo",
-  "selectMethod": "Seleccionar Método",
-  "preview": "Vista Previa",
-  "selectColor": "Seleccionar Color",
-  "selectIcon": "Seleccionar Ícono",
-  "confirm": "Confirmar",
-  "cancel": "Cancelar",
-  "save": "Guardar",
-  "delete": "Eliminar",
-  "edit": "Editar",
-  "pause": "Pausar",
-  "resume": "Reanudar",
   "abandon": "Abandonar",
-  "todaysSaving": "Ahorro de Hoy",
-  "checkIn": "Registrar",
-  "markAsSaved": "Marcar como Ahorrado",
-  "streak": "Racha",
-  "days": "días",
-  "totalSaved": "Total Ahorrado",
-  "remaining": "Restante",
-  "progress": "Progreso",
-  "daysLeft": "Días Restantes",
-  "achievements": "Logros",
-  "unlocked": "Desbloqueado",
-  "locked": "Bloqueado",
-  "darkMode": "Modo Oscuro",
-  "lightMode": "Modo Claro",
-  "language": "Idioma",
-  "notifications": "Notificaciones",
-  "reminderTime": "Hora del Recordatorio",
-  "premium": "Premium",
-  "upgradeToPremium": "Actualizar a Premium",
-  "monthlyPlan": "Plan Mensual",
-  "yearlyPlan": "Plan Anual",
-  "perMonth": "/mes",
-  "perYear": "/año",
-  "progressive": "Progresivo",
-  "progressiveDesc": "Empieza pequeño, aumenta diario. Día 1=$1, Día 2=$2...",
-  "fixedDaily": "Fijo Diario",
-  "fixedDailyDesc": "El mismo monto cada día. Simple y consistente.",
-  "reverseProgressive": "Progresivo Inverso",
-  "reverseProgressiveDesc": "Empieza alto, disminuye diario. Alta motivación al inicio.",
-  "weeklyChallenge": "Desafío Semanal",
-  "weeklyChallengeDesc": "Aumenta tu ahorro cada semana.",
-  "randomEnvelopes": "Aleatorio (Sobres)",
-  "randomEnvelopesDesc": "Montos aleatorios cada día. ¡Divertido y sorprendente!",
-  "multiplier": "Multiplicador",
-  "multiplierDesc": "Crecimiento exponencial con tope diario.",
-  "biWeeklySteps": "Escalonado Bi-Semanal",
-  "biWeeklyStepsDesc": "Aumenta el monto cada dos semanas.",
-  "penaltyMethod": "Penalización",
-  "penaltyMethodDesc": "Ahorra un monto fijo cada vez que haces un mal hábito.",
-  "freeMethods": "Gratis",
-  "premiumMethods": "Premium",
-  "estimatedDays": "Estimado: {days} días",
-  "estimatedTotal": "Total: ${amount}",
-  "today": "Hoy",
-  "thisWeek": "Esta Semana",
-  "thisMonth": "Este Mes",
-  "allTime": "Todo",
-  "noGoalsYet": "Sin metas aún",
-  "createYourFirstGoal": "¡Crea tu primera meta de ahorro!",
-  "congratulations": "¡Felicidades!",
+  "aboutKipera": "Acerca de Kipera",
+  "accept": "Aceptar",
+  "accountSettings": "Ajustes de la cuenta",
   "achievementUnlocked": "¡Logro Desbloqueado!",
-  "goalCompleted": "¡Meta Cumplida!",
-  "firstStep": "Primer Paso",
-  "firstStepDesc": "Completa tu primer ahorro",
-  "streak3": "Racha de 3",
-  "streak3Desc": "Ahorra 3 días seguidos",
-  "weeklyWarrior": "Guerrero Semanal",
-  "weeklyWarriorDesc": "Ahorra 7 días seguidos",
-  "biweeklyChampion": "Campeón Quincenal",
-  "biweeklyChampionDesc": "Ahorra 14 días seguidos",
-  "monthlyMaster": "Maestro Mensual",
-  "monthlyMasterDesc": "Ahorra 30 días seguidos",
-  "centurion": "Centurión",
-  "centurionDesc": "Ahorra 100 días seguidos",
-  "quarterWay": "25% del Camino",
-  "quarterWayDesc": "Alcanza el 25% de tu meta",
-  "halfWay": "¡Mitad del Camino!",
-  "halfWayDesc": "Alcanza el 50% de tu meta",
+  "achievements": "Logros",
+  "activeGoalsLabel": "Metas Activas",
+  "activityLabel": "Actividad",
+  "alerts": "Alertas",
+  "allTime": "Todo",
   "almostThere": "¡Casi Ahí!",
   "almostThereDesc": "Alcanza el 75% de tu meta",
-  "goalAchieved": "¡Meta Lograda!",
-  "goalAchievedDesc": "Completa el 100% de tu meta",
+  "alreadyCheckedIn": "¡Ya ahorraste hoy! Vuelve mañana.",
+  "alreadyHaveAccount": "¿Ya tienes cuenta? Inicia Sesión",
+  "alreadyHaveAccountStart": "¿Ya tienes cuenta? ",
+  "appName": "Kipera",
+  "biWeeklySteps": "Escalonado Bi-Semanal",
+  "biWeeklyStepsDesc": "Aumenta el monto cada dos semanas.",
+  "biweeklyChampion": "Campeón Quincenal",
+  "biweeklyChampionDesc": "Ahorra 14 días seguidos",
+  "byGoal": "Por Meta",
+  "calendar": "Calendario",
+  "cancel": "Cancelar",
+  "centurion": "Centurión",
+  "centurionDesc": "Ahorra 100 días seguidos",
+  "checkIn": "Registrar",
+  "checkInGoalNotFound": "Meta no encontrada. Puede haber sido eliminada.",
+  "chooseReminderTime": "Elige una hora de recordatorio diario.",
   "club100": "Club de los $100",
-  "club100Desc": "Ahorra $100 en total",
   "club1000": "Club de los $1,000",
   "club1000Desc": "Ahorra $1,000 en total",
-  "perfectWeek": "Semana Perfecta",
-  "perfectWeekDesc": "Ahorra cada día de una semana completa",
-  "perfectMonth": "Mes Perfecto",
-  "perfectMonthDesc": "Ahorra cada día de un mes completo",
+  "club100Desc": "Ahorra $100 en total",
   "comeback": "Regreso Triunfal",
   "comebackDesc": "Retoma el ahorro después de 3+ días sin ahorrar",
-  "profile": "Perfil",
-  "logout": "Cerrar Sesión",
+  "confirm": "Confirmar",
+  "congratulations": "¡Felicidades!",
+  "coupleGoalLabel": "Meta en Pareja",
+  "createAccount": "Crear Cuenta",
+  "createGoal": "Crear Meta",
+  "createGoalAmountValidation": "Establece un monto objetivo mayor a $0.",
+  "createGoalError": "Algo salió mal al crear tu meta. Inténtalo de nuevo.",
+  "createGoalLoginRequired": "Necesitas iniciar sesión para crear una meta.",
+  "createGoalNameValidation": "Ponle un nombre a tu meta para identificarla fácilmente.",
+  "createGoalPartnerEmailValidation": "Introduce un correo válido para tu pareja.",
+  "createGoalTimeValidation": "Elige una hora de recordatorio diaria.",
+  "createGoalValidation": "Por favor introduce un nombre y monto objetivo para continuar.",
+  "createYourFirstGoal": "¡Crea tu primera meta de ahorro!",
+  "currentlyAt": "Actualmente a las {time}",
+  "@currentlyAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyReminderAt": "Recordatorio diario a las {time}",
+  "@dailyReminderAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "darkMode": "Modo Oscuro",
+  "dayLabel": "Día {number}",
+  "@dayLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dayLeftToGoal": "día restante para tu meta",
+  "dayOfTotal": "Día {completed} de {total}",
+  "@dayOfTotal": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "days": "días",
+  "daysCount": "{count, plural, =1{1 día} other{{count} días}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decline": "Rechazar",
+  "defaultUserName": "Ahorrador",
+  "delete": "Eliminar",
   "deleteAccount": "Eliminar Cuenta",
+  "deleteGoalConfirmation": "¿Estás seguro de que quieres eliminar \"{name}\"? Esta acción no se puede deshacer.",
+  "@deleteGoalConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteGoalTitle": "Eliminar Meta",
+  "displayName": "Nombre",
+  "dontHaveAccount": "¿No tienes cuenta? Regístrate",
+  "dontHaveAccountStart": "¿No tienes cuenta? ",
+  "edit": "Editar",
+  "editGoalName": "Editar Nombre de Meta",
+  "editReminderTime": "Editar Hora de Recordatorio",
+  "email": "Correo electrónico",
+  "enterEmail": "Introduce tu correo",
+  "enterName": "Introduce tu nombre",
+  "enterNameAndAmount": "Por favor introduce un nombre y cantidad para continuar.",
+  "enterPartnerEmail": "Introduce un correo válido para tu pareja.",
+  "enterPassword": "Introduce tu contraseña",
+  "errorCreatingGoal": "Algo salió mal al crear tu meta. Inténtalo de nuevo.",
+  "errorPrefix": "Error: {error}",
+  "@errorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "estimatedDays": "Estimado: {days} días",
+  "@estimatedDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "estimatedTotal": "Total: ${amount}",
+  "@estimatedTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "expectedLabel": "Esperado: ",
+  "fillInformation": "Completa tu información abajo",
+  "firstStep": "Primer Paso",
+  "firstStepDesc": "Completa tu primer ahorro",
+  "fixedDaily": "Fijo Diario",
+  "fixedDailyDesc": "El mismo monto cada día. Simple y consistente.",
+  "fixedMethodOnboardingDesc": "Ahorra la misma cantidad cada día. Simple y consistente.",
+  "fixedMethodTitle": "Fijo Diario",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "forgotPasswordDesc": "Introduce tu correo para recibir un enlace de recuperación.",
+  "freeMethods": "Gratis",
+  "freePlanStatus": "Estás en el Plan Gratis",
+  "getStarted": "Comenzar",
+  "giveGoalName": "Ponle un nombre a tu meta para identificarla fácilmente.",
+  "goalAchieved": "¡Meta Lograda!",
+  "goalAchievedDesc": "Completa el 100% de tu meta",
+  "goalAchievedSubtitle": "Completa el 100% de una meta",
+  "goalAchievedTitle": "¡Meta Alcanzada!",
+  "goalCompleted": "¡Meta Cumplida!",
+  "goalCreated": "¡\"{name}\" creada! Tu viaje de ahorro comienza ahora.",
+  "@goalCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalDeletedSuccess": "\"{name}\" ha sido eliminada.",
+  "@goalDeletedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalLabelPrefix": "Meta: {name}",
+  "@goalLabelPrefix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalName": "Nombre de la Meta",
+  "goalNameExample": "ej. Viaje a Europa",
+  "goalNameHint": "Nombre de la meta",
+  "goalNotFound": "Meta no encontrada",
+  "goalReachedLabel": "¡Meta alcanzada! ",
+  "goalRenamed": "Meta renombrada a \"{name}\"",
+  "@goalRenamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goalsProgress": "Progreso de Metas",
+  "google": "Google",
+  "halfWay": "¡Mitad del Camino!",
+  "halfWayDesc": "Alcanza el 50% de tu meta",
+  "helloUser": "¡Hola, {name}!",
+  "@helloUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "home": "Inicio",
+  "invalidEmail": "Introduce un correo válido",
+  "invalidEmailError": "Por favor introduce un correo válido.",
+  "invitationAcceptedError": "No se pudo aceptar la invitación. Inténtalo de nuevo.",
+  "invitationAcceptedSuccess": "❤️ ¡Invitación aceptada! Ya pueden ahorrar juntos.",
+  "invitationDeclinedError": "No se pudo rechazar la invitación. Inténtalo de nuevo.",
+  "invitationDeclinedSuccess": "Invitación rechazada.",
+  "invitationEmptyState": "Cuando alguien te invite a ahorrar en pareja, aparecerá aquí.",
+  "invitationError": "No se pudo enviar la invitación. Inténtalo de nuevo.",
+  "invitationSent": "❤️ ¡Invitación enviada a {email}!",
+  "@invitationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationSentError": "No se pudo enviar la invitación. Inténtalo de nuevo.",
+  "invitationSentSuccess": "❤️ ¡Invitación enviada a {email}!",
+  "@invitationSentSuccess": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteAnotherPartner": "Invitar a Otra Pareja",
+  "invitePartner": "Invitar Pareja",
+  "language": "Idioma",
+  "leaveGoal": "Salir de Meta",
+  "leaveGoalConfirmation": "¿Estás seguro de que quieres salir de \"{name}\"? Serás eliminado de esta meta de pareja y dejarás de recibir recordatorios.",
+  "@leaveGoalConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveSharedGoalSubtitle": "Dejar de sincronizar y cancelar recordatorios",
+  "leaveSharedGoalTitle": "Salir de Meta Compartida",
+  "leftGoalError": "Error al salir de la meta.",
+  "leftGoalSuccess": "Has salido de \"{name}\".",
+  "@leftGoalSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lightMode": "Modo Claro",
+  "loadInvitationsError": "No se pudieron cargar las invitaciones",
+  "locked": "Bloqueado",
+  "loggingOut": "Cerrando sesión...",
+  "login": "Iniciar Sesión",
+  "loginLink": "Inicia Sesión",
+  "loginRequired": "Necesitas iniciar sesión para crear una meta.",
+  "loginToAccount": "Inicia sesión en tu cuenta",
+  "logout": "Cerrar Sesión",
+  "markAsSaved": "Marcar como Ahorrado",
+  "maybeLater": "Quizás después",
+  "monthlyMaster": "Maestro Mensual",
+  "monthlyMasterDesc": "Ahorra 30 días seguidos",
+  "monthlyPlan": "Plan Mensual",
+  "multiplier": "Multiplicador",
+  "multiplierDesc": "Crecimiento exponencial con tope diario.",
+  "multiplierMethodOnboardingDesc": "Crecimiento exponencial con un tope diario para grandes resultados.",
+  "multiplierMethodTitle": "Multiplicador",
+  "next": "Siguiente",
+  "noGoalsYet": "Sin metas aún",
+  "noPendingInvitations": "No hay invitaciones pendientes",
+  "notSet": "No establecido",
+  "notificationBody": "No olvides tu meta \"{name}\" hoy.",
+  "@notificationBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationBodyJoint": "No olvides tu ahorro conjunto para \"{name}\" hoy.",
+  "@notificationBodyJoint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifications": "Notificaciones",
+  "ofLabel": "de ",
+  "ok": "Aceptar",
+  "onboardingDesc1": "Elige entre 8 métodos de ahorro que se adaptan a tu estilo de vida",
+  "onboardingDesc2": "Visualiza tus ahorros con heatmaps y estadísticas",
+  "onboardingDesc3": "Desbloquea logros y mantente motivado con rachas diarias",
+  "onboardingEducation": "Educación",
+  "onboardingEmergency": "Fondo de Emergencia",
+  "onboardingFun": "Diversión y Entretenimiento",
+  "onboardingGoalSubtitle": "Elige en qué te gustaría enfocarte primero.",
+  "onboardingGoalTitle": "¿Para qué quieres\nahorrar?",
+  "onboardingHome": "Hogar",
+  "onboardingMethodSubtitle": "Elige un método que se adapte a tu estilo de vida.",
+  "onboardingMethodTitle": "Ahorra con Estrategia",
+  "onboardingTech": "Tecnología y Gadgets",
+  "onboardingTitle1": "Ahorra Inteligente",
+  "onboardingTitle2": "Sigue Tu Progreso",
+  "onboardingTitle3": "Alcanza Tus Metas",
+  "onboardingTrackSubtitle": "Visualiza tus ahorros y desbloquea logros.",
+  "onboardingTrackTitle": "Sigue tu\nProgreso",
+  "onboardingTravel": "Viajes",
+  "orContinueWith": "O continuar con",
+  "orLoginWith": "o Inicia sesión con",
+  "orSignUpWith": "o Regístrate con",
+  "partnerEmailHint": "Correo de tu pareja",
+  "partnerInviteInfo": "Tu pareja recibirá una invitación para unirse a esta meta.",
+  "partnerLabel": "Pareja",
+  "password": "Contraseña",
+  "passwordMinChar": "Mínimo 6 caracteres",
+  "pause": "Pausar",
+  "penaltyMethod": "Penalización",
+  "penaltyMethodDesc": "Ahorra un monto fijo cada vez que haces un mal hábito.",
+  "perMonth": "/mes",
+  "perYear": "/año",
+  "perfectMonth": "Mes Perfecto",
+  "perfectMonthDesc": "Ahorra cada día de un mes completo",
+  "perfectWeek": "Semana Perfecta",
+  "perfectWeekDesc": "Ahorra cada día de una semana completa",
+  "premium": "Premium",
+  "premiumMethods": "Premium",
+  "premiumPlan": "Plan Premium",
+  "premiumSubtitle": "Desbloquea desafíos exclusivos y análisis avanzados de hábitos.",
+  "premiumUpgradeDesc": "Obtén acceso a los 8 métodos de ahorro, metas ilimitadas, estadísticas avanzadas, sincronización en la nube, notificaciones personalizadas y una experiencia sin anuncios.",
+  "premiumUpgradeTitle": "Actualización Premium",
+  "preview": "Vista Previa",
+  "privacyPolicy": "Política de Privacidad",
+  "proLabel": "PRO",
+  "profile": "Perfil",
+  "progress": "Progreso",
+  "progressive": "Progresivo",
+  "progressiveDesc": "Empieza pequeño, aumenta diario. Día 1=$1, Día 2=$2...",
+  "progressiveMethodOnboardingDesc": "Empieza con poco y aumenta cada día. Día 1 = $1, Día 2 = $2...",
+  "progressiveMethodTitle": "Progresivo",
+  "quarterWay": "25% del Camino",
+  "quarterWayDesc": "Alcanza el 25% de tu meta",
+  "randomEnvelopes": "Aleatorio (Sobres)",
+  "randomEnvelopesDesc": "Montos aleatorios cada día. ¡Divertido y sorprendente!",
+  "randomMethodOnboardingDesc": "Cantidades aleatorias cada día. ¡Divertido y sorprendente!",
+  "randomMethodTitle": "Sobres Aleatorios",
+  "reachGoalInPrefix": "¡Puedes alcanzar tu meta en solo ",
+  "reachGoalInSuffix": "!",
+  "reachGoalRemaining": "{count, plural, =1 {día restante para tu meta} other {días restantes para tu meta}}",
+  "@reachGoalRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "register": "Registrarse",
+  "remaining": "Restante",
+  "rememberMe": "Recuérdame",
+  "reminderTime": "Hora de recordatorio",
+  "reminderUpdated": "Recordatorio actualizado a {time}",
+  "@reminderUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredReminder": "Requerido — mantente en el camino",
+  "resetLinkSent": "Revisa tu correo para encontrar el enlace.",
+  "resetPassword": "Restablecer Contraseña",
+  "resume": "Reanudar",
+  "reverseProgressive": "Progresivo Inverso",
+  "reverseProgressiveDesc": "Empieza alto, disminuye diario. Alta motivación al inicio.",
+  "save": "Guardar",
+  "savePercentage": "Ahorra {percentage}",
+  "@savePercentage": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "saveWithPartner": "Ahorra junto con tu pareja",
+  "savingHeatmap": "Mapa de Calor de Ahorro",
+  "selectColor": "Seleccionar Color",
+  "selectIcon": "Seleccionar Ícono",
+  "selectLanguage": "Seleccionar idioma",
+  "selectMethod": "Seleccionar Método",
+  "send": "Enviar",
+  "sendInvitationNewPartner": "Enviar invitación a una nueva pareja",
+  "sendResetLink": "Enviar enlace",
+  "setTargetAmount": "Establece una cantidad mayor a $0 para tu meta.",
+  "settings": "Ajustes",
+  "signUpLink": "Regístrate",
+  "skip": "Omitir",
+  "someone": "Alguien",
+  "statistics": "Estadísticas",
+  "stepOfTotal": "Paso {current} de {total}",
+  "@stepOfTotal": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "streak": "Racha",
+  "streak3": "Racha de 3",
+  "streak3Desc": "Ahorra 3 días seguidos",
+  "streak7Subtitle": "Ahorra durante 7 días seguidos",
+  "streak7Title": "Racha de 7 Días",
+  "subscribe": "Suscribirse",
+  "tapToSetReminder": "Toca para establecer un recordatorio",
+  "targetAmount": "Monto Objetivo",
+  "targetAmountExample": "1000",
+  "thisActionCannotBeUndone": "Esta acción no se puede deshacer",
+  "thisMonth": "Este Mes",
+  "thisWeek": "Esta Semana",
+  "timeToSave": "¡Hora de ahorrar!",
+  "today": "Hoy",
+  "todayLabel": "Hoy",
+  "todaysSaving": "Ahorro de Hoy",
+  "totalLabel": "Total: ",
+  "totalSaved": "Total Ahorrado",
+  "totalTargetLabel": "Objetivo Total",
+  "turnIntoCoupleGoal": "Convertir en meta de pareja",
+  "unknownGoal": "Meta desconocida",
+  "unlocked": "Desbloqueado",
+  "upgrade": "Actualizar",
+  "upgradeToPremium": "Actualizar a Premium",
+  "userLabel": "Tú",
   "version": "Versión",
-  "aboutKipera": "Acerca de Kipera"
+  "viewProfile": "Ver perfil",
+  "weeklyChallenge": "Desafío Semanal",
+  "weeklyChallengeDesc": "Aumenta tu ahorro cada semana.",
+  "weeklyWarrior": "Guerrero Semanal",
+  "weeklyWarriorDesc": "Ahorra 7 días seguidos",
+  "welcomeBack": "Bienvenido de nuevo",
+  "yearlyPlan": "Plan Anual",
+  "yesterdayLabel": "Ayer"
 }

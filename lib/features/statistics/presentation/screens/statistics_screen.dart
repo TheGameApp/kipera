@@ -44,7 +44,7 @@ class StatisticsScreen extends ConsumerWidget {
                   children: [
             goalsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Text(context.l10n.errorPrefix(e.toString())),
               data: (goals) {
                 if (goals.isEmpty) {
                   return Center(
@@ -71,14 +71,14 @@ class StatisticsScreen extends ConsumerWidget {
                     Row(
                       children: [
                         _OverviewCard(
-                          label: 'Active Goals',
+                          label: context.l10n.activeGoalsLabel,
                           value: goals.length.toString(),
                           icon: Icons.flag,
                           color: AppColors.primary,
                         ),
                         const SizedBox(width: 12),
                         _OverviewCard(
-                          label: 'Total Target',
+                          label: context.l10n.totalTargetLabel,
                           valueWidget: CurrencyText(
                             amount: goals.fold(0.0, (s, g) => s + g.targetAmount),
                             style: context.textTheme.titleLarge?.copyWith(
@@ -94,7 +94,7 @@ class StatisticsScreen extends ConsumerWidget {
 
                     // Chart
                     Text(
-                      'Goals Progress',
+                      context.l10n.goalsProgress,
                       style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -162,7 +162,7 @@ class StatisticsScreen extends ConsumerWidget {
 
                     // Per-goal stats
                     Text(
-                      'By Goal',
+                      context.l10n.byGoal,
                       style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),

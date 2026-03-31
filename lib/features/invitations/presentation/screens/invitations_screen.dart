@@ -20,6 +20,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
   String? _processingId;
 
   Future<void> _accept(String invitationId, String goalId, Map<String, dynamic> goalData) async {
+    final l10n = context.l10n;
     debugPrint(
       '❤️ [InvitationsScreen] Accepting invitation — id: $invitationId',
     );
@@ -65,8 +66,8 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
           goalId: goalId,
           hour: reminderHour,
           minute: reminderMinute,
-          title: 'Time to save!',
-          body: 'Don\'t forget your joint savings for "$name" today.',
+          title: l10n.timeToSave,
+          body: l10n.notificationBodyJoint(name),
         );
         debugPrint('✅ [InvitationsScreen] Joint Goal reminder scheduled successfully');
       } else {
@@ -76,7 +77,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: '❤️ Invitation accepted! You can now save together.',
+          message: l10n.invitationAcceptedSuccess,
           type: KiperaSnackType.success,
           icon: Icons.favorite,
         );
@@ -88,7 +89,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Could not accept invitation. Try again.',
+          message: l10n.invitationAcceptedError,
           type: KiperaSnackType.error,
         );
       }
@@ -98,6 +99,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
   }
 
   Future<void> _reject(String invitationId) async {
+    final l10n = context.l10n;
     debugPrint(
       '🚫 [InvitationsScreen] Rejecting invitation — id: $invitationId',
     );
@@ -113,7 +115,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Invitation declined.',
+          message: l10n.invitationDeclinedSuccess,
           type: KiperaSnackType.info,
         );
       }
@@ -124,7 +126,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
       if (mounted) {
         KiperaSnackBar.show(
           context,
-          message: 'Could not decline invitation. Try again.',
+          message: l10n.invitationDeclinedError,
           type: KiperaSnackType.error,
         );
       }
@@ -147,7 +149,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
               child: Text(
-                'Alerts',
+                context.l10n.alerts,
                 style: context.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -169,7 +171,7 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Could not load invitations',
+                        context.l10n.loadInvitationsError,
                         style: context.textTheme.bodyLarge,
                       ),
                     ],
@@ -190,14 +192,14 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No pending invitations',
+                            context.l10n.noPendingInvitations,
                             style: context.textTheme.titleMedium?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'When someone invites you to save\ntogether, it will appear here.',
+                            context.l10n.invitationEmptyState,
                             textAlign: TextAlign.center,
                             style: context.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
@@ -219,9 +221,9 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
                           inv['inviter'] as Map<String, dynamic>? ?? {};
 
                       return InvitationCard(
-                        goalName: goal['name'] as String? ?? 'Unknown Goal',
+                        goalName: goal['name'] as String? ?? context.l10n.unknownGoal,
                         inviterName:
-                            inviter['display_name'] as String? ?? 'Someone',
+                            inviter['display_name'] as String? ?? context.l10n.someone,
                         targetAmount:
                             (goal['target_amount'] as num?)?.toDouble() ?? 0,
                         method: goal['method'] as String? ?? '',

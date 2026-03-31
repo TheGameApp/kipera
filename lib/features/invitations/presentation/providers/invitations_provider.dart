@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/sync_provider.dart';
 import '../../../../core/services/invitation_service.dart';
@@ -23,15 +24,30 @@ final pendingInvitationsProvider = StreamProvider<List<Map<String, dynamic>>>((r
   final service = ref.read(invitationServiceProvider);
   final supabase = ref.read(supabaseServiceProvider).client;
 
-  // Listen for real-time changes on the invitations table
-  final stream = supabase
-      .from('goal_invitations')
-      .stream(primaryKey: ['id'])
-      .eq('invitee_email', user.email!);
-
-  // Yield new fully-joined queries every time the underlying rows change
-  await for (final _ in stream) {
+  // 1. Initial fetch independently (to avoid being blocked by websocket timeouts)
+  try {
     yield await service.getPendingInvitations(user.email!);
+  } catch (e) {
+    debugPrint('❌ [InvitationsProvider] Initial fetch failed: $e');
+    yield []; // fall back to empty or let error propagate
+  }
+
+  // 2. Real-time stream
+  try {
+    final stream = supabase
+        .from('goal_invitations')
+        .stream(primaryKey: ['id'])
+        .eq('invitee_email', user.email!);
+
+    // skip(1) because the stream emits the current state upon connecting, 
+    // which we already fetched above.
+    await for (final _ in stream.skip(1)) {
+      yield await service.getPendingInvitations(user.email!);
+    }
+  } catch (e) {
+    debugPrint('⚠️ [InvitationsProvider] Realtime connection timeout/error: $e');
+    // If the websocket connection fails, the provider just continues with 
+    // the last yielded value. The UI won't crash.
   }
 });
 
