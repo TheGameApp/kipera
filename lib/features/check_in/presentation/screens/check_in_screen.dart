@@ -15,6 +15,7 @@ import '../../../../core/utils/saving_calculator.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+import '../../../../core/providers/sync_provider.dart';
 
 class CheckInScreen extends ConsumerStatefulWidget {
   final String goalId;
@@ -73,7 +74,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       return;
     }
 
-    final dayNumber = entries.length + 1;
+    final userEntries = entries.where((e) => e.userId == null || e.userId == user.id).toList();
+    final dayNumber = userEntries.length + 1;
 
     final method = SavingMethod.values.firstWhere(
       (m) => m.name == goal.method,
@@ -162,6 +164,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     ref.invalidate(totalSavedForGoalProvider(widget.goalId));
     ref.invalidate(entriesForGoalProvider(widget.goalId));
     ref.invalidate(goalDetailProvider(widget.goalId));
+
+    // Force background sync to push this entry to partner immediately
+    ref.read(syncServiceProvider).syncAll().ignore();
 
     if (mounted) {
       setState(() => _saving = false);
@@ -294,7 +299,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                         final entries = ref
                             .watch(entriesForGoalProvider(widget.goalId))
                             .valueOrNull;
-                        final dayNumber = (entries?.length ?? 0) + 1;
+                        final user = ref.watch(currentUserProvider);
+                        final userEntries = entries?.where((e) => e.userId == null || e.userId == user?.id).toList() ?? [];
+                        final dayNumber = userEntries.length + 1;
                         final config = MethodConfig.fromJson(
                           jsonDecode(goal.methodConfig)
                               as Map<String, dynamic>,

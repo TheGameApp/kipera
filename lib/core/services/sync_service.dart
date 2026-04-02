@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../database/app_database.dart';
 import 'connectivity_service.dart';
 import 'notification_hook.dart';
@@ -22,6 +23,7 @@ class SyncService {
   final NotificationHook _notificationHook;
 
   StreamSubscription<bool>? _connectivitySub;
+  RealtimeChannel? _realtimeChannel;
   final ValueNotifier<SyncState> stateNotifier = ValueNotifier(SyncState.idle);
 
   static const _kLastSyncKey = 'kipera_last_sync_at';
@@ -42,12 +44,28 @@ class SyncService {
   /// Carga el timestamp del último sync desde disco y arranca el listener de conectividad.
   Future<void> init() async {
     await _loadLastSyncAt();
+    
+    // Listen for realtime connectivity changes
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
       if (online) {
         debugPrint('🔄 [SyncService] Back online — triggering sync');
         syncAll();
       }
     });
+
+    // Listen for real-time changes directly from Supabase DB to update UI live
+    _realtimeChannel = _supabase.client
+        .channel('public:saving_entries')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'saving_entries',
+          callback: (payload) {
+            debugPrint('⚡ [Realtime] Payload received from Supabase! Triggering sync...');
+            syncAll().ignore();
+          },
+        )
+        .subscribe();
   }
 
   /// Lee _lastSyncAt de SharedPreferences.
@@ -100,6 +118,17 @@ class SyncService {
       debugPrint('❌ [SyncService] Sync error: $e');
       stateNotifier.value = SyncState.error;
     }
+  }
+
+  /// Forces a complete re-download of all data from Supabase.
+  /// Useful when permissions change (e.g. accepting a couple goal invitation)
+  /// and we need to fetch past records that were previously blocked by RLS.
+  Future<void> forceFullSync() async {
+    debugPrint('🔄 [SyncService] Forcing FULL sync (resetting cursor)...');
+    _lastSyncAt = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kLastSyncKey);
+    await syncAll();
   }
 
   // ---------------------------------------------------------------------------
@@ -181,7 +210,12 @@ class SyncService {
           id: Value(remote['id'] as String),
           goalId: Value(goalId),
           userId: Value(userId),
-          date: Value(DateTime.parse(remote['date'] as String)),
+          date: Value(() {
+            final dStr = remote['date'] as String;
+            // Supabase sends 'YYYY-MM-DD 00:00:00+00', we just want the 'YYYY-MM-DD' as local time
+            final yyyyMmDd = dStr.length >= 10 ? dStr.substring(0, 10) : dStr;
+            return DateTime.parse(yyyyMmDd); 
+          }()),
           expectedAmount: Value((remote['expected_amount'] as num).toDouble()),
           actualAmount: Value((remote['actual_amount'] as num).toDouble()),
           isCompleted: Value(remote['is_completed'] as bool? ?? false),
@@ -266,7 +300,15 @@ class SyncService {
         await _db.syncQueueDao.markSynced(item.id);
       } catch (e) {
         debugPrint('❌ [SyncService] Failed to push item ${item.id}: $e');
-        // Don't mark as synced — will retry on next sync
+
+        // Discard items with unrecoverable errors (e.g. orphaned foreign key)
+        // so they don't retry forever on every sync.
+        final isUnrecoverable = e.toString().contains('23503') || // FK violation
+            e.toString().contains('23505');                        // unique violation
+        if (isUnrecoverable) {
+          debugPrint('🗑️ [SyncService] Discarding unrecoverable item ${item.id}');
+          await _db.syncQueueDao.markSynced(item.id);
+        }
       }
     }
 
@@ -346,6 +388,9 @@ class SyncService {
 
   void dispose() {
     _connectivitySub?.cancel();
+    if (_realtimeChannel != null) {
+      _supabase.client.removeChannel(_realtimeChannel!);
+    }
     stateNotifier.dispose();
   }
 }

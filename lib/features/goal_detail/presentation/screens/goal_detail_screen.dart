@@ -19,13 +19,31 @@ import '../../../../core/services/notification_service.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/sync_provider.dart';
-class GoalDetailScreen extends ConsumerWidget {
+class GoalDetailScreen extends ConsumerStatefulWidget {
   final String goalId;
 
   const GoalDetailScreen({super.key, required this.goalId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GoalDetailScreen> createState() => _GoalDetailScreenState();
+}
+
+class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
+  String get goalId => widget.goalId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Sync once when entering the screen to fetch partner's latest entries
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(syncServiceProvider).syncAll();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Keep realtime channel active while this screen is open
+    ref.watch(syncServiceProvider);
     debugPrint('[GoalDetail] screen loaded — goalId: $goalId');
     final goalAsync = ref.watch(goalDetailProvider(goalId));
     final totalSavedAsync = ref.watch(totalSavedForGoalProvider(goalId));
@@ -251,6 +269,8 @@ class GoalDetailScreen extends ConsumerWidget {
                                 );
                             final completedDays = entries
                                 .where((e) => e.isCompleted)
+                                .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
+                                .toSet()
                                 .length;
                             final daysLeft =
                                 (totalEstimatedDays - completedDays).clamp(
@@ -297,24 +317,28 @@ class GoalDetailScreen extends ConsumerWidget {
                                       children: [
                                         RichText(
                                           text: TextSpan(
-                                            style: context.textTheme.bodyMedium
-                                                ?.copyWith(
-                                    color: context.isDarkMode
-                                                      ? AppColors.textDark
-                                                      : AppColors.textLight,
-                                                ),
+                                            style: context.textTheme.bodyMedium?.copyWith(
+                                              color: context.isDarkMode
+                                                  ? AppColors.textDark
+                                                  : AppColors.textLight,
+                                            ),
                                             children: daysLeft > 0
                                                 ? [
                                                     TextSpan(
-                                                      text: context.l10n
-                                                          .reachGoalRemaining(
-                                                            daysLeft,
-                                                          ),
+                                                      text: '$daysLeft\n',
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 28,
                                                         color: AppColors.purple,
+                                                        height: 1.1,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text: context.l10n.reachGoalRemaining(daysLeft),
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.w500,
+                                                        fontSize: 13,
+                                                        color: AppColors.purple.withValues(alpha: 0.8),
                                                       ),
                                                     ),
                                                   ]
@@ -362,9 +386,22 @@ class GoalDetailScreen extends ConsumerWidget {
                             final streak = HeatmapUtils.calculateStreak(
                               completedDates,
                             );
-                            final totalDays = entries.length;
+                            final method = SavingMethod.values.firstWhere(
+                              (m) => m.name == goal.method,
+                              orElse: () => SavingMethod.progressive,
+                            );
+                            final config = MethodConfig.fromJson(
+                              jsonDecode(goal.methodConfig) as Map<String, dynamic>,
+                            );
+                            final totalDays = SavingCalculator.estimatedDays(
+                              method: method,
+                              targetAmount: goal.targetAmount,
+                              config: config,
+                            );
                             final completedDays = entries
                                 .where((e) => e.isCompleted)
+                                .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
+                                .toSet()
                                 .length;
 
                             return Row(
@@ -417,17 +454,60 @@ class GoalDetailScreen extends ConsumerWidget {
                           loading: () => const SizedBox.shrink(),
                           error: (_, __) => const SizedBox.shrink(),
                           data: (entries) {
-                            final heatmapData = <DateTime, int>{};
+                            final currUserId =
+                                ref.read(currentUserProvider)?.id ?? '';
+                            final userLevels = <DateTime, int>{};
+                            final partnerLevels = <DateTime, int>{};
+                            double myTotal = 0.0;
+                            double partnerTotal = 0.0;
+
                             for (final entry in entries) {
                               final ratio = entry.expectedAmount > 0
                                   ? entry.actualAmount / entry.expectedAmount
                                   : 0.0;
-                              heatmapData[entry.date] =
-                                  HeatmapUtils.intensityLevel(ratio);
+                              final level = HeatmapUtils.intensityLevel(ratio);
+
+                              final isCurrentUser = entry.userId == null || entry.userId == currUserId;
+                              if (isCurrentUser) {
+                                userLevels[DateTime(entry.date.year, entry.date.month, entry.date.day)] = level;
+                                myTotal += entry.actualAmount;
+                              } else if (goal.isCoupleGoal) {
+                                partnerLevels[DateTime(entry.date.year, entry.date.month, entry.date.day)] = level;
+                                partnerTotal += entry.actualAmount;
+                              }
                             }
-                            return HeatmapWidget(
-                              data: heatmapData,
-                              startDate: goal.startDate,
+
+                            Widget? breakdownWidget;
+                            if (goal.isCoupleGoal) {
+                              final isDark = context.isDarkMode;
+                              breakdownWidget = Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Row(
+                                  children: [
+                                    Container(width: 10, height: 10, decoration: BoxDecoration(color: isDark ? AppColors.heatmapDark4 : AppColors.heatmapLight4, borderRadius: BorderRadius.circular(2))),
+                                    const SizedBox(width: 6),
+                                    Text('Tú: ', style: context.textTheme.bodySmall),
+                                    CurrencyText(amount: myTotal, style: context.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 16),
+                                    Container(width: 10, height: 10, decoration: BoxDecoration(color: isDark ? AppColors.heatmapPartnerDark4 : AppColors.heatmapPartnerLight4, borderRadius: BorderRadius.circular(2))),
+                                    const SizedBox(width: 6),
+                                    Text('Pareja: ', style: context.textTheme.bodySmall),
+                                    CurrencyText(amount: partnerTotal, style: context.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (breakdownWidget != null) breakdownWidget,
+                                HeatmapWidget(
+                                  data: userLevels,
+                                  partnerData: goal.isCoupleGoal ? partnerLevels : null,
+                                  startDate: goal.startDate,
+                                ),
+                              ],
                             );
                           },
                         ),
@@ -461,7 +541,23 @@ class GoalDetailScreen extends ConsumerWidget {
                                         ? AppColors.success
                                         : AppColors.textSecondary,
                                   ),
-                                  title: CurrencyText(amount: entry.actualAmount),
+                                  title: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CurrencyText(amount: entry.actualAmount),
+                                      if (goal.isCoupleGoal) ...[
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          (entry.userId == null || entry.userId == ref.read(currentUserProvider)?.id)
+                                              ? '(Tú)'
+                                              : '(Partner)',
+                                          style: context.textTheme.bodySmall?.copyWith(
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ]
+                                    ],
+                                  ),
                                   subtitle: Text(
                                     '${entry.date.month}/${entry.date.day}/${entry.date.year}',
                                   ),
@@ -747,6 +843,7 @@ class GoalDetailScreen extends ConsumerWidget {
           icon: Icons.edit_outlined,
         );
       }
+      ref.read(syncServiceProvider).syncAll().ignore();
     }
   }
 
@@ -798,6 +895,7 @@ class GoalDetailScreen extends ConsumerWidget {
         );
         context.pop();
       }
+      ref.read(syncServiceProvider).syncAll().ignore();
     }
   }
 
@@ -863,6 +961,7 @@ class GoalDetailScreen extends ConsumerWidget {
           );
           context.pop();
         }
+        ref.read(syncServiceProvider).syncAll().ignore();
       } catch (e) {
         debugPrint('❌ [GoalDetail] leaveGoal error: $e');
         if (context.mounted) {

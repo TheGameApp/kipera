@@ -33,8 +33,8 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
         '✅ [InvitationsScreen] Invitation accepted — id: $invitationId',
       );
 
-      // Trigger a sync so the new goal and members appear immediately on HomeScreen
-      ref.read(syncServiceProvider).syncAll();
+      // Trigger a force sync so the new goal and past members/entries appear immediately
+      ref.read(syncServiceProvider).forceFullSync();
 
       // Schedule local notification if reminder_time is set
       debugPrint('📋 [InvitationsScreen] Checking method_config for goal: $goalId');

@@ -215,10 +215,13 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
     try {
       final config = _buildConfig();
       final now = DateTime.now();
+      final memberCount = _isCoupleGoal ? 2 : 1;
+      
       final days = SavingCalculator.estimatedDays(
         method: _selectedMethod,
         targetAmount: amount,
         config: config,
+        memberCount: memberCount,
       );
 
       final colorHex = AppColors.goalColors[_selectedColorIndex]
@@ -702,15 +705,19 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
     if (amount <= 0) return const SizedBox.shrink();
 
     final config = _buildConfig();
+    final memberCount = _isCoupleGoal ? 2 : 1;
+    
     final days = SavingCalculator.estimatedDays(
       method: _selectedMethod,
       targetAmount: amount,
       config: config,
+      memberCount: memberCount,
     );
     final total = SavingCalculator.totalForDays(
       method: _selectedMethod,
       config: config,
       days: days,
+      memberCount: memberCount,
     );
 
     return Container(

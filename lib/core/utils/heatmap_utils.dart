@@ -23,7 +23,8 @@ class HeatmapUtils {
   static int calculateStreak(List<DateTime> completedDates) {
     if (completedDates.isEmpty) return 0;
 
-    final sorted = [...completedDates]..sort((a, b) => b.compareTo(a));
+    final uniqueSet = completedDates.map((d) => DateTime(d.year, d.month, d.day)).toSet();
+    final sorted = uniqueSet.toList()..sort((a, b) => b.compareTo(a));
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
 

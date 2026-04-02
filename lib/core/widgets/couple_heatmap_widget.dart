@@ -35,60 +35,94 @@ class CoupleHeatmapWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final today = DateTime.now();
-    final startDate = today.subtract(Duration(days: (weeks * 7) - 1));
-
-    // Build columns (weeks) of 7 rows (days)
-    final columns = <Widget>[];
-
-    for (int week = 0; week < weeks; week++) {
-      final cells = <Widget>[];
-
-      for (int day = 0; day < 7; day++) {
-        final date = startDate.add(Duration(days: (week * 7) + day));
-        final dateOnly = DateTime(date.year, date.month, date.day);
-
-        if (date.isAfter(today)) {
-          // Future — empty cell
-          cells.add(SizedBox(width: cellSize, height: cellSize));
-        } else {
-          final userLevel = userLevels[dateOnly] ?? 0;
-          final partnerLevel = partnerLevels[dateOnly] ?? 0;
-
-          cells.add(
-            SizedBox(
-              width: cellSize,
-              height: cellSize,
-              child: CustomPaint(
-                painter: DiagonalCellPainter(
-                  userColor: _getUserColor(userLevel, isDark),
-                  partnerColor: _getPartnerColor(partnerLevel, isDark),
-                  borderRadius: 3,
-                ),
-              ),
-            ),
-          );
-        }
-      }
-
-      columns.add(
-        Padding(
-          padding: EdgeInsets.only(right: cellGap),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: cells
-                .map((c) => Padding(
-                      padding: EdgeInsets.only(bottom: cellGap),
-                      child: c,
-                    ))
-                .toList(),
-          ),
-        ),
-      );
-    }
+    final todayKey = DateTime(today.year, today.month, today.day);
+    const cellTotal = 14.0 + 3.0; // cellSize + cellGap
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Heatmap grid
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final maxColumns = (constraints.maxWidth / cellTotal).floor().clamp(1, weeks);
+            final columnCount = maxColumns;
+            final DateTime gridStart = today.subtract(Duration(days: (columnCount - 1) * 7 + 6));
+
+            return AspectRatio(
+              aspectRatio: columnCount / 7,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: List.generate(columnCount, (colIndex) {
+                  return Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: List.generate(7, (dayIndex) {
+                        final date = gridStart.add(Duration(days: colIndex * 7 + dayIndex));
+                        final dateKey = DateTime(date.year, date.month, date.day);
+                        final isAfterToday = dateKey.isAfter(todayKey);
+
+                        // If it's a future day, show empty cell
+                        if (isAfterToday) {
+                          return Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.all(1.5),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                          );
+                        }
+
+                        final userLevel = userLevels[dateKey] ?? 0;
+                        final partnerLevel = partnerLevels[dateKey] ?? 0;
+
+                        final uColor = _getUserColor(userLevel, isDark);
+                        final pColor = _getPartnerColor(partnerLevel, isDark);
+
+                        Widget cellWidget;
+                        if (userLevel > 0 && partnerLevel == 0) {
+                          // Only user deposited
+                          cellWidget = Container(
+                            decoration: BoxDecoration(
+                              color: uColor,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        } else if (partnerLevel > 0 && userLevel == 0) {
+                          // Only partner deposited
+                          cellWidget = Container(
+                            decoration: BoxDecoration(
+                              color: pColor,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        } else {
+                          // Both deposited (or neither, in which case both are level 0 and empty colors will paint)
+                          cellWidget = CustomPaint(
+                            painter: DiagonalCellPainter(
+                              userColor: uColor,
+                              partnerColor: pColor,
+                              borderRadius: 3,
+                            ),
+                          );
+                        }
+
+                        return Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.all(1.5),
+                            child: cellWidget,
+                          ),
+                        );
+                      }),
+                    ),
+                  );
+                }),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 8),
         // Legend
         Row(
           children: [
@@ -96,15 +130,6 @@ class CoupleHeatmapWidget extends StatelessWidget {
             const SizedBox(width: 12),
             _LegendItem(label: 'Partner', color: _getPartnerColor(3, isDark)),
           ],
-        ),
-        const SizedBox(height: 8),
-        // Heatmap grid
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: columns,
-          ),
         ),
       ],
     );

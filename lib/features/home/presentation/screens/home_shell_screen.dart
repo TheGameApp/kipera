@@ -3,24 +3,51 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/providers/sync_provider.dart';
 import '../../../invitations/presentation/providers/invitations_provider.dart';
 
-class HomeShellScreen extends ConsumerWidget {
+class HomeShellScreen extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const HomeShellScreen({super.key, required this.navigationShell});
 
+  @override
+  ConsumerState<HomeShellScreen> createState() => _HomeShellScreenState();
+}
+
+class _HomeShellScreenState extends ConsumerState<HomeShellScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint('🔄 [HomeShell] App resumed — triggering sync');
+      ref.read(syncServiceProvider).syncAll();
+    }
+  }
+
   void _onNavTap(BuildContext context, int index, int pendingCount) {
     debugPrint('🧭 [HomeShell] tab changed — index: $index');
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = navigationShell.currentIndex;
+  Widget build(BuildContext context) {
+    final currentIndex = widget.navigationShell.currentIndex;
     final isDark = context.isDarkMode;
     final pendingCount = ref.watch(pendingInvitationCountProvider);
 
@@ -29,7 +56,7 @@ class HomeShellScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       extendBody: true,
       floatingActionButton: SizedBox(
         width: 60,
