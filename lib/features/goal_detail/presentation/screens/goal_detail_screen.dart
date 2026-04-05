@@ -942,8 +942,14 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
           (currentUser.email as String?) ?? '',
         );
         
-        // 2. Remove locally without queueing a delete sync
+        // 2. Clean up local DB — remove membership, entries, and the goal row
+        // so it doesn't linger after restart / sync.
         final db = ref.read(databaseProvider);
+        await db.goalMembersDao.deleteMemberForGoalUser(
+          goal.id,
+          currentUser.id as String,
+        );
+        await db.entriesDao.deleteEntriesForGoal(goal.id);
         await db.goalsDao.deleteGoalRemoteOnly(goal.id);
         
         // 3. Cancel local notification
@@ -961,7 +967,9 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
           );
           context.pop();
         }
-        ref.read(syncServiceProvider).syncAll().ignore();
+        // Don't syncAll here — the local delete already removed the goal
+        // and a sync would re-pull it from Supabase before the RLS update
+        // propagates, causing it to reappear.
       } catch (e) {
         debugPrint('❌ [GoalDetail] leaveGoal error: $e');
         if (context.mounted) {

@@ -44,7 +44,19 @@ class SyncService {
   /// Carga el timestamp del último sync desde disco y arranca el listener de conectividad.
   Future<void> init() async {
     await _loadLastSyncAt();
-    
+
+    // Detect stale cursor: if lastSyncAt exists but local DB is empty
+    // (e.g. app was reinstalled), reset to force a full download.
+    if (_lastSyncAt != null) {
+      final localGoals = await _db.goalsDao.getActiveGoals('');
+      if (localGoals.isEmpty) {
+        debugPrint('⚠️ [SyncService] lastSyncAt set but DB is empty — resetting for full sync');
+        _lastSyncAt = null;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_kLastSyncKey);
+      }
+    }
+
     // Listen for realtime connectivity changes
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
       if (online) {
@@ -166,9 +178,9 @@ class SyncService {
             methodConfig: Value(jsonEncode(remote['method_config'])),
             colorHex: Value(remote['color_hex'] as String),
             iconName: Value(remote['icon_name'] as String),
-            startDate: Value(DateTime.parse(remote['start_date'] as String)),
+            startDate: Value(_parseDateOnly(remote['start_date'] as String)),
             endDate: Value(remote['end_date'] != null
-                ? DateTime.parse(remote['end_date'] as String)
+                ? _parseDateOnly(remote['end_date'] as String)
                 : null),
             status: Value(remote['status'] as String),
             isCoupleGoal: Value(remote['is_couple_goal'] as bool? ?? false),
@@ -210,12 +222,7 @@ class SyncService {
           id: Value(remote['id'] as String),
           goalId: Value(goalId),
           userId: Value(userId),
-          date: Value(() {
-            final dStr = remote['date'] as String;
-            // Supabase sends 'YYYY-MM-DD 00:00:00+00', we just want the 'YYYY-MM-DD' as local time
-            final yyyyMmDd = dStr.length >= 10 ? dStr.substring(0, 10) : dStr;
-            return DateTime.parse(yyyyMmDd); 
-          }()),
+          date: Value(_parseDateOnly(remote['date'] as String)),
           expectedAmount: Value((remote['expected_amount'] as num).toDouble()),
           actualAmount: Value((remote['actual_amount'] as num).toDouble()),
           isCompleted: Value(remote['is_completed'] as bool? ?? false),
@@ -335,6 +342,19 @@ class SyncService {
         await _supabase.upsertEntry(_toSupabaseEntry(payload));
         break;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Date helpers
+  // ---------------------------------------------------------------------------
+
+  /// Parses a date string from Supabase and returns a local DateTime with
+  /// only the date component (midnight local). Avoids timezone shifting by
+  /// extracting YYYY-MM-DD directly from the string.
+  static DateTime _parseDateOnly(String dateStr) {
+    final dateOnly = dateStr.substring(0, 10); // "2026-04-02"
+    final parts = dateOnly.split('-');
+    return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
   }
 
   // ---------------------------------------------------------------------------

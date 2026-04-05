@@ -42,9 +42,15 @@ final goalDetailProvider = StreamProvider.family<SavingsGoal?, String>((ref, goa
   return db.goalsDao.watchGoal(goalId);
 });
 
-final totalSavedForGoalProvider = FutureProvider.family<double, String>((ref, goalId) {
+final totalSavedForGoalProvider = StreamProvider.family<double, String>((ref, goalId) {
   final db = ref.watch(databaseProvider);
-  return db.entriesDao.getTotalSavedForGoal(goalId);
+  return db.entriesDao.watchEntriesForGoal(goalId).map((entries) {
+    double total = 0;
+    for (final e in entries) {
+      if (e.isCompleted) total += e.actualAmount;
+    }
+    return total;
+  });
 });
 
 final entriesForGoalProvider = StreamProvider.family<List<SavingEntry>, String>((ref, goalId) {

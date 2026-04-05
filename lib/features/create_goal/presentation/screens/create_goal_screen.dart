@@ -215,6 +215,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
     try {
       final config = _buildConfig();
       final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
       final memberCount = _isCoupleGoal ? 2 : 1;
       
       final days = SavingCalculator.estimatedDays(
@@ -243,8 +244,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           methodConfig: jsonEncode(config.toJson()),
           colorHex: colorHex,
           iconName: _selectedIcon,
-          startDate: now,
-          endDate: Value(days > 0 ? now.add(Duration(days: days)) : null),
+          startDate: today,
+          endDate: Value(days > 0 ? today.add(Duration(days: days)) : null),
           isCoupleGoal: Value(_isCoupleGoal),
           createdAt: now,
           updatedAt: now,

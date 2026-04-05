@@ -36,4 +36,8 @@ class GoalMembersDao extends DatabaseAccessor<AppDatabase> with _$GoalMembersDao
   /// Delete all members for a goal.
   Future<void> deleteMembersForGoal(String goalId) =>
       (delete(goalMembers)..where((t) => t.goalId.equals(goalId))).go();
+
+  /// Delete a specific user's membership for a goal.
+  Future<void> deleteMemberForGoalUser(String goalId, String userId) =>
+      (delete(goalMembers)..where((t) => t.goalId.equals(goalId) & t.userId.equals(userId))).go();
 }

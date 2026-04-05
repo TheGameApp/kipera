@@ -125,6 +125,10 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
     }
   }
 
+  /// Delete all entries for a goal (local only, no sync queue).
+  Future<void> deleteEntriesForGoal(String goalId) =>
+      (delete(savingEntries)..where((t) => t.goalId.equals(goalId))).go();
+
   Future<List<SavingEntry>> getCompletedEntriesForGoal(String goalId) =>
       (select(savingEntries)
             ..where((t) =>

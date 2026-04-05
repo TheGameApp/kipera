@@ -16,6 +16,11 @@ class CoupleHeatmapWidget extends StatelessWidget {
   /// How many weeks to display.
   final int weeks;
 
+  /// Optional start date for the grid. When provided, the grid starts
+  /// from this date forward (like the single-user heatmap).
+  /// When null, the grid counts backwards from today.
+  final DateTime? startDate;
+
   /// Cell size in pixels.
   final double cellSize;
 
@@ -27,6 +32,7 @@ class CoupleHeatmapWidget extends StatelessWidget {
     required this.userLevels,
     required this.partnerLevels,
     this.weeks = 15,
+    this.startDate,
     this.cellSize = 14,
     this.cellGap = 3,
   });
@@ -46,7 +52,9 @@ class CoupleHeatmapWidget extends StatelessWidget {
           builder: (context, constraints) {
             final maxColumns = (constraints.maxWidth / cellTotal).floor().clamp(1, weeks);
             final columnCount = maxColumns;
-            final DateTime gridStart = today.subtract(Duration(days: (columnCount - 1) * 7 + 6));
+            final DateTime gridStart = startDate != null
+                ? DateTime(startDate!.year, startDate!.month, startDate!.day)
+                : today.subtract(Duration(days: (columnCount - 1) * 7 + 6));
 
             return AspectRatio(
               aspectRatio: columnCount / 7,
@@ -61,13 +69,16 @@ class CoupleHeatmapWidget extends StatelessWidget {
                         final dateKey = DateTime(date.year, date.month, date.day);
                         final isAfterToday = dateKey.isAfter(todayKey);
 
-                        // If it's a future day, show empty cell
+                        // If it's a future day: with startDate show empty-level cell,
+                        // without startDate show transparent.
                         if (isAfterToday) {
                           return Expanded(
                             child: Container(
                               margin: const EdgeInsets.all(1.5),
                               decoration: BoxDecoration(
-                                color: Colors.transparent,
+                                color: startDate != null
+                                    ? _getUserColor(0, isDark)
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -81,7 +92,15 @@ class CoupleHeatmapWidget extends StatelessWidget {
                         final pColor = _getPartnerColor(partnerLevel, isDark);
 
                         Widget cellWidget;
-                        if (userLevel > 0 && partnerLevel == 0) {
+                        if (userLevel == 0 && partnerLevel == 0) {
+                          // Neither deposited — plain empty cell
+                          cellWidget = Container(
+                            decoration: BoxDecoration(
+                              color: uColor,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        } else if (userLevel > 0 && partnerLevel == 0) {
                           // Only user deposited
                           cellWidget = Container(
                             decoration: BoxDecoration(
@@ -98,7 +117,7 @@ class CoupleHeatmapWidget extends StatelessWidget {
                             ),
                           );
                         } else {
-                          // Both deposited (or neither, in which case both are level 0 and empty colors will paint)
+                          // Both deposited — diagonal split
                           cellWidget = CustomPaint(
                             painter: DiagonalCellPainter(
                               userColor: uColor,

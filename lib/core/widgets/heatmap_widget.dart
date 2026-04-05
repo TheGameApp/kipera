@@ -29,6 +29,7 @@ class HeatmapWidget extends StatelessWidget {
         userLevels: data,
         partnerLevels: partnerData!,
         weeks: weeks,
+        startDate: startDate,
       );
     }
 
