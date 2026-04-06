@@ -37,6 +37,12 @@
   "confirm": "Confirm",
   "congratulations": "Congratulations!",
   "coupleGoalLabel": "Couple Goal",
+  "coupleGoalWithPartner": "with {name}",
+  "@coupleGoalWithPartner": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "createAccount": "Create Account",
   "createGoal": "Create Goal",
   "createGoalAmountValidation": "Set a target amount greater than $0 for your goal.",

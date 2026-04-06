@@ -255,22 +255,51 @@ class SyncService {
     // but we're here to download members).
     final allGoals = await _db.goalsDao.getActiveGoals('');
 
-    // For couple goals, fetch their members
+    // For couple goals, fetch their members and sync profiles
+    final now = DateTime.now();
     for (final goal in allGoals) {
       if (goal.isCoupleGoal) {
         final remoteMembers = await _supabase.fetchGoalMembers(goal.id);
         debugPrint('⬇️ [SyncService] Pulled ${remoteMembers.length} members for goal ${goal.id}');
         for (final member in remoteMembers) {
+          final userId = member['user_id'] as String;
           await _db.goalMembersDao.upsertMember(GoalMembersCompanion(
             id: Value(member['id'] as String),
             goalId: Value(member['goal_id'] as String),
-            userId: Value(member['user_id'] as String),
+            userId: Value(userId),
             role: Value(member['role'] as String),
             status: Value(member['status'] as String),
             joinedAt: Value(member['joined_at'] != null
                 ? DateTime.parse(member['joined_at'] as String)
                 : null),
           ));
+
+          // Sync partner profile locally for offline display
+          final profile = member['profiles'] as Map<String, dynamic>?;
+          if (profile != null) {
+            await _db.usersDao.upsertUser(UsersCompanion(
+              id: Value(userId),
+              email: Value(profile['email'] as String? ?? ''),
+              displayName: Value(profile['display_name'] as String?),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ));
+          }
+        }
+
+        // Also sync the goal owner's profile (owner has no goal_members row)
+        final ownerInDb = await _db.usersDao.getUserById(goal.userId);
+        if (ownerInDb == null || ownerInDb.displayName == null) {
+          final ownerProfile = await _supabase.getProfile(goal.userId);
+          if (ownerProfile != null) {
+            await _db.usersDao.upsertUser(UsersCompanion(
+              id: Value(goal.userId),
+              email: Value(ownerProfile['email'] as String? ?? ''),
+              displayName: Value(ownerProfile['display_name'] as String?),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ));
+          }
         }
       }
     }

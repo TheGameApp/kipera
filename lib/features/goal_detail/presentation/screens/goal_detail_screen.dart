@@ -116,29 +116,35 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                           child: Column(
                             children: [
                               if (goal.isCoupleGoal)
-                                Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.pink.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: AppColors.pink.withValues(alpha: 0.4)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text('❤️', style: TextStyle(fontSize: 13)),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        context.l10n.coupleGoalLabel,
-                                        style: context.textTheme.labelSmall?.copyWith(
-                                          color: AppColors.pink,
-                                          fontWeight: FontWeight.w600,
+                                Builder(builder: (context) {
+                                  final partnerNameAsync = ref.watch(partnerNameProvider(goalId));
+                                  final partnerName = partnerNameAsync.valueOrNull;
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.pink.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: AppColors.pink.withValues(alpha: 0.4)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('❤️', style: TextStyle(fontSize: 13)),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          partnerName != null
+                                              ? context.l10n.coupleGoalWithPartner(partnerName)
+                                              : context.l10n.coupleGoalLabel,
+                                          style: context.textTheme.labelSmall?.copyWith(
+                                            color: AppColors.pink,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                      ],
+                                    ),
+                                  );
+                                }),
                               Text(
                                 goal.name,
                                 style: context.textTheme.headlineMedium
@@ -248,208 +254,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Days remaining banner
-                        entriesAsync.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                          data: (entries) {
-                            final method = SavingMethod.values.firstWhere(
-                              (m) => m.name == goal.method,
-                              orElse: () => SavingMethod.progressive,
-                            );
-                            final config = MethodConfig.fromJson(
-                              jsonDecode(goal.methodConfig)
-                                  as Map<String, dynamic>,
-                            );
-                            final totalEstimatedDays =
-                                SavingCalculator.estimatedDays(
-                                  method: method,
-                                  targetAmount: goal.targetAmount,
-                                  config: config,
-                                );
-                            final completedDays = entries
-                                .where((e) => e.isCompleted)
-                                .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
-                                .toSet()
-                                .length;
-                            final daysLeft =
-                                (totalEstimatedDays - completedDays).clamp(
-                                  0,
-                                  totalEstimatedDays,
-                                );
-
-                            return Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                                horizontal: 20,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.purple.withValues(alpha: 0.15),
-                                    AppColors.pink.withValues(alpha: 0.1),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.purple.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    daysLeft == 0
-                                        ? Icons.emoji_events_rounded
-                                        : Icons.rocket_launch_rounded,
-                                    color: AppColors.purple,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            style: context.textTheme.bodyMedium?.copyWith(
-                                              color: context.isDarkMode
-                                                  ? AppColors.textDark
-                                                  : AppColors.textLight,
-                                            ),
-                                            children: daysLeft > 0
-                                                ? [
-                                                    TextSpan(
-                                                      text: '$daysLeft\n',
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 28,
-                                                        color: AppColors.purple,
-                                                        height: 1.1,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: context.l10n.reachGoalRemaining(daysLeft),
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.w500,
-                                                        fontSize: 13,
-                                                        color: AppColors.purple.withValues(alpha: 0.8),
-                                                      ),
-                                                    ),
-                                                  ]
-                                                : [
-                                                    TextSpan(
-                                                      text: context.l10n.goalReachedLabel,
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: AppColors.purple,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: context.l10n.congratulations,
-                                                    ),
-                                                  ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          context.l10n.dayOfTotal(completedDays, totalEstimatedDays),
-                                          style: context.textTheme.bodySmall?.copyWith(
-                                                color: AppColors.textSecondary,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Stats Row
-                        entriesAsync.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                          data: (entries) {
-                            final completedDates = entries
-                                .where((e) => e.isCompleted)
-                                .map((e) => e.date)
-                                .toList();
-                            final streak = HeatmapUtils.calculateStreak(
-                              completedDates,
-                            );
-                            final method = SavingMethod.values.firstWhere(
-                              (m) => m.name == goal.method,
-                              orElse: () => SavingMethod.progressive,
-                            );
-                            final config = MethodConfig.fromJson(
-                              jsonDecode(goal.methodConfig) as Map<String, dynamic>,
-                            );
-                            final totalDays = SavingCalculator.estimatedDays(
-                              method: method,
-                              targetAmount: goal.targetAmount,
-                              config: config,
-                            );
-                            final completedDays = entries
-                                .where((e) => e.isCompleted)
-                                .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
-                                .toSet()
-                                .length;
-
-                            return Row(
-                              children: [
-                                    _StatCard(
-                                      icon: Icons.local_fire_department,
-                                      label: context.l10n.streak,
-                                      value: Text('$streak'),
-                                      color: Colors.orange,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    _StatCard(
-                                      icon: Icons.calendar_today,
-                                      label: context.l10n.days,
-                                      value: Text('$completedDays/$totalDays'),
-                                      color: AppColors.info,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    _StatCard(
-                                      icon: Icons.trending_up,
-                                      label: context.l10n.remaining,
-                                      value: totalSavedAsync.whenOrNull(
-                                            data: (saved) => CurrencyText(
-                                              amount: goal.targetAmount - saved,
-                                              style: context.textTheme.titleMedium
-                                                  ?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.success,
-                                              ),
-                                            ),
-                                          ) ??
-                                          const Text('...'),
-                                      color: AppColors.success,
-                                    ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Heatmap
-                        Text(
-                          context.l10n.progress,
-                          style: context.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+                        // Heatmap (primary progress visualization)
                         entriesAsync.when(
                           loading: () => const SizedBox.shrink(),
                           error: (_, __) => const SizedBox.shrink(),
@@ -481,17 +286,17 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                             if (goal.isCoupleGoal) {
                               final isDark = context.isDarkMode;
                               breakdownWidget = Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.only(bottom: 12),
                                 child: Row(
                                   children: [
                                     Container(width: 10, height: 10, decoration: BoxDecoration(color: isDark ? AppColors.heatmapDark4 : AppColors.heatmapLight4, borderRadius: BorderRadius.circular(2))),
                                     const SizedBox(width: 6),
-                                    Text('Tú: ', style: context.textTheme.bodySmall),
+                                    Text('${context.l10n.userLabel}: ', style: context.textTheme.bodySmall),
                                     CurrencyText(amount: myTotal, style: context.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
                                     const SizedBox(width: 16),
                                     Container(width: 10, height: 10, decoration: BoxDecoration(color: isDark ? AppColors.heatmapPartnerDark4 : AppColors.heatmapPartnerLight4, borderRadius: BorderRadius.circular(2))),
                                     const SizedBox(width: 6),
-                                    Text('Pareja: ', style: context.textTheme.bodySmall),
+                                    Text('${context.l10n.partnerLabel}: ', style: context.textTheme.bodySmall),
                                     CurrencyText(amount: partnerTotal, style: context.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
                                   ],
                                 ),
@@ -508,6 +313,79 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                                   startDate: goal.startDate,
                                 ),
                               ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Compact stats row
+                        entriesAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (entries) {
+                            final completedDates = entries
+                                .where((e) => e.isCompleted)
+                                .map((e) => e.date)
+                                .toList();
+                            final streak = HeatmapUtils.calculateStreak(
+                              completedDates,
+                            );
+                            final method = SavingMethod.values.firstWhere(
+                              (m) => m.name == goal.method,
+                              orElse: () => SavingMethod.progressive,
+                            );
+                            final config = MethodConfig.fromJson(
+                              jsonDecode(goal.methodConfig) as Map<String, dynamic>,
+                            );
+                            final totalDays = SavingCalculator.estimatedDays(
+                              method: method,
+                              targetAmount: goal.targetAmount,
+                              config: config,
+                            );
+                            final completedDays = entries
+                                .where((e) => e.isCompleted)
+                                .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
+                                .toSet()
+                                .length;
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: AppColors.purple.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _CompactStat(
+                                    icon: Icons.local_fire_department,
+                                    iconColor: Colors.orange,
+                                    text: '$streak ${context.l10n.streak.toLowerCase()}',
+                                  ),
+                                  Text('·', style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.4), fontSize: 16)),
+                                  _CompactStat(
+                                    icon: Icons.calendar_today,
+                                    iconColor: AppColors.info,
+                                    text: '$completedDays/$totalDays ${context.l10n.days.toLowerCase()}',
+                                  ),
+                                  Text('·', style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.4), fontSize: 16)),
+                                  totalSavedAsync.when(
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                    data: (saved) => _CompactStat(
+                                      icon: Icons.trending_up,
+                                      iconColor: AppColors.success,
+                                      child: CurrencyText(
+                                        amount: (goal.targetAmount - saved).clamp(0, goal.targetAmount),
+                                        style: context.textTheme.bodySmall?.copyWith(
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -549,8 +427,8 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                                         const SizedBox(width: 8),
                                         Text(
                                           (entry.userId == null || entry.userId == ref.read(currentUserProvider)?.id)
-                                              ? '(Tú)'
-                                              : '(Partner)',
+                                              ? '(${context.l10n.userLabel})'
+                                              : '(${context.l10n.partnerLabel})',
                                           style: context.textTheme.bodySmall?.copyWith(
                                             color: AppColors.textSecondary,
                                           ),
@@ -1190,48 +1068,34 @@ class _EditGoalNameDialogState extends State<_EditGoalNameDialog> {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _CompactStat extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final Widget value;
-  final Color color;
+  final Color iconColor;
+  final String? text;
+  final Widget? child;
 
-  const _StatCard({
+  const _CompactStat({
     required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
+    required this.iconColor,
+    this.text,
+    this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: iconColor, size: 14),
+        const SizedBox(width: 4),
+        child ?? Text(
+          text ?? '',
+          style: context.textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
-            DefaultTextStyle(
-              style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ) ??
-                  const TextStyle(),
-              child: value,
-            ),
-            Text(
-              label,
-              style: context.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

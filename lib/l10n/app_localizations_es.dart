@@ -121,6 +121,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get coupleGoalLabel => 'Meta en Pareja';
 
   @override
+  String coupleGoalWithPartner(String name) {
+    return 'con $name';
+  }
+
+  @override
   String get createAccount => 'Crear Cuenta';
 
   @override

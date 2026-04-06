@@ -78,3 +78,35 @@ final partnerEntriesProvider = StreamProvider.family<List<SavingEntry>, String>(
   if (user == null) return Stream.value([]);
   return db.entriesDao.watchPartnerEntries(goalId, user.id);
 });
+
+/// Partner display name for a couple goal.
+final partnerNameProvider = FutureProvider.family<String?, String>((ref, goalId) async {
+  final db = ref.watch(databaseProvider);
+  final user = ref.watch(currentUserProvider);
+  if (user == null) {
+    debugPrint('👤 [PartnerName] No current user');
+    return null;
+  }
+
+  // Try finding partner via goal_members (works when you're the owner)
+  final partner = await db.goalMembersDao.getPartner(goalId, user.id);
+  if (partner != null) {
+    debugPrint('👤 [PartnerName] Partner member found — userId: ${partner.userId}');
+    final partnerUser = await db.usersDao.getUserById(partner.userId);
+    debugPrint('👤 [PartnerName] displayName: ${partnerUser?.displayName}');
+    return partnerUser?.displayName;
+  }
+
+  // Fallback: you're the invited partner — the owner has no goal_members row,
+  // so look up the goal's userId (the owner) directly from the users table.
+  final goal = await db.goalsDao.getGoalById(goalId);
+  if (goal != null && goal.userId != user.id) {
+    debugPrint('👤 [PartnerName] Fallback — looking up owner: ${goal.userId}');
+    final ownerUser = await db.usersDao.getUserById(goal.userId);
+    debugPrint('👤 [PartnerName] Owner displayName: ${ownerUser?.displayName}');
+    return ownerUser?.displayName;
+  }
+
+  debugPrint('👤 [PartnerName] No partner found for goal $goalId');
+  return null;
+});

@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Couple Goal'**
   String get coupleGoalLabel;
 
+  /// No description provided for @coupleGoalWithPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'with {name}'**
+  String coupleGoalWithPartner(String name);
+
   /// No description provided for @createAccount.
   ///
   /// In en, this message translates to:

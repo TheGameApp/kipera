@@ -37,6 +37,12 @@
   "confirm": "Confirmar",
   "congratulations": "¡Felicidades!",
   "coupleGoalLabel": "Meta en Pareja",
+  "coupleGoalWithPartner": "con {name}",
+  "@coupleGoalWithPartner": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "createAccount": "Crear Cuenta",
   "createGoal": "Crear Meta",
   "createGoalAmountValidation": "Establece un monto objetivo mayor a $0.",
