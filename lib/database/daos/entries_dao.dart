@@ -91,6 +91,8 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
           }))
         .getSingleOrNull();
 
+    final now = DateTime.now();
+
     if (existing != null) {
       await (update(savingEntries)..where((t) => t.id.equals(existing!.id)))
           .write(SavingEntriesCompanion(
@@ -98,9 +100,12 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
         isCompleted: entry.isCompleted,
         note: entry.note,
         userId: entry.userId,
+        updatedAt: Value(entry.updatedAt.present ? entry.updatedAt.value : now),
       ));
     } else {
-      await into(savingEntries).insert(entry);
+      await into(savingEntries).insert(entry.copyWith(
+        updatedAt: entry.updatedAt.present ? entry.updatedAt : Value(now),
+      ));
     }
 
     if (enqueueSync) {
@@ -120,6 +125,7 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
           'is_completed': entry.isCompleted.value,
           'note': entry.note.present ? entry.note.value : null,
           'created_at': entry.createdAt.value.toIso8601String(),
+          'updated_at': now.toIso8601String(),
         }),
       );
     }
@@ -152,8 +158,9 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
     final query = customSelect(
       'SELECT SUM(e.actual_amount) as total FROM saving_entries e '
       'INNER JOIN savings_goals g ON e.goal_id = g.id '
-      'WHERE g.user_id = ? AND e.is_completed = 1',
-      variables: [Variable.withString(userId)],
+      'LEFT JOIN goal_members gm ON g.id = gm.goal_id AND gm.user_id = ? AND gm.status = \'accepted\' '
+      'WHERE (g.user_id = ? OR gm.id IS NOT NULL) AND e.is_completed = 1',
+      variables: [Variable.withString(userId), Variable.withString(userId)],
       readsFrom: {savingEntries},
     );
     final result = await query.getSingle();
@@ -165,10 +172,12 @@ class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
     final start = DateTime(today.year, today.month, today.day);
     final end = start.add(const Duration(days: 1));
     return customSelect(
-      'SELECT e.* FROM saving_entries e '
+      'SELECT DISTINCT e.* FROM saving_entries e '
       'INNER JOIN savings_goals g ON e.goal_id = g.id '
-      'WHERE g.user_id = ? AND e.date >= ? AND e.date < ?',
+      'LEFT JOIN goal_members gm ON g.id = gm.goal_id AND gm.user_id = ? AND gm.status = \'accepted\' '
+      'WHERE (g.user_id = ? OR gm.id IS NOT NULL) AND e.date >= ? AND e.date < ?',
       variables: [
+        Variable.withString(userId),
         Variable.withString(userId),
         Variable.withDateTime(start),
         Variable.withDateTime(end),

@@ -228,6 +228,9 @@ class SyncService {
           isCompleted: Value(remote['is_completed'] as bool? ?? false),
           note: Value(remote['note'] as String?),
           createdAt: Value(DateTime.parse(remote['created_at'] as String)),
+          updatedAt: Value(remote['updated_at'] != null
+              ? DateTime.parse(remote['updated_at'] as String)
+              : null),
         ),
         enqueueSync: false,
       );
@@ -246,17 +249,17 @@ class SyncService {
   }
 
   Future<void> _pullMembers() async {
-    // Pull members for all local couple goals
-    final allGoals = await _db.goalsDao.getActiveGoals(
-      // We need the current user's ID, but since this is called from providers
-      // that already have the user context, we pull for all local goals
-      '', // This will be overridden — see below
-    );
+    // Use empty userId to get ALL local active goals — we need to find couple
+    // goals regardless of ownership, because goal_members rows haven't been
+    // downloaded yet (chicken-and-egg: we need members to filter by user,
+    // but we're here to download members).
+    final allGoals = await _db.goalsDao.getActiveGoals('');
 
     // For couple goals, fetch their members
     for (final goal in allGoals) {
       if (goal.isCoupleGoal) {
         final remoteMembers = await _supabase.fetchGoalMembers(goal.id);
+        debugPrint('⬇️ [SyncService] Pulled ${remoteMembers.length} members for goal ${goal.id}');
         for (final member in remoteMembers) {
           await _db.goalMembersDao.upsertMember(GoalMembersCompanion(
             id: Value(member['id'] as String),
@@ -399,6 +402,7 @@ class SyncService {
       'is_completed': local['is_completed'] ?? local['isCompleted'] ?? false,
       'note': local['note'],
       'created_at': local['created_at'] ?? local['createdAt'],
+      'updated_at': local['updated_at'] ?? local['updatedAt'] ?? DateTime.now().toIso8601String(),
     };
   }
 

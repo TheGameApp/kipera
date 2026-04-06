@@ -102,9 +102,15 @@ class SupabaseService {
       final response = await _client
           .from('saving_entries')
           .select()
-          .gte('created_at', since.toIso8601String())
+          .or('updated_at.gte.${since.toIso8601String()},created_at.gte.${since.toIso8601String()}')
           .order('created_at', ascending: true);
-      return List<Map<String, dynamic>>.from(response);
+      final results = List<Map<String, dynamic>>.from(response);
+      for (final r in results) {
+        final updatedAt = DateTime.tryParse(r['updated_at'] as String? ?? '');
+        final reason = (updatedAt != null && updatedAt.isAfter(since)) ? 'updated_at' : 'created_at';
+        debugPrint('📥 [fetchEntriesSince] entry ${r['id']} matched by $reason');
+      }
+      return results;
     } catch (e) {
       debugPrint('❌ [SupabaseService] fetchEntriesSince error: $e');
       return [];

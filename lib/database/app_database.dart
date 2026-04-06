@@ -48,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -75,6 +75,13 @@ class AppDatabase extends _$AppDatabase {
             // (from goalId+date to goalId+userId+date) is handled
             // by Drift automatically through table recreation if needed.
             // Existing entries will have userId=null which is fine.
+          }
+          if (from < 3) {
+            // --- v2 → v3 migration ---
+            // Add updatedAt to saving_entries for incremental sync
+            await customStatement(
+              'ALTER TABLE saving_entries ADD COLUMN updated_at INTEGER NULL',
+            );
           }
         },
       );

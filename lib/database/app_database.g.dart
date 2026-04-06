@@ -1480,6 +1480,17 @@ class $SavingEntriesTable extends SavingEntries
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1491,6 +1502,7 @@ class $SavingEntriesTable extends SavingEntries
     isCompleted,
     note,
     createdAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1574,6 +1586,12 @@ class $SavingEntriesTable extends SavingEntries
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1623,6 +1641,10 @@ class $SavingEntriesTable extends SavingEntries
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
     );
   }
 
@@ -1642,6 +1664,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
   final bool isCompleted;
   final String? note;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   const SavingEntry({
     required this.id,
     required this.goalId,
@@ -1652,6 +1675,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
     required this.isCompleted,
     this.note,
     required this.createdAt,
+    this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1669,6 +1693,9 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
       map['note'] = Variable<String>(note);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     return map;
   }
 
@@ -1685,6 +1712,9 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
       isCompleted: Value(isCompleted),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -1703,6 +1733,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
   @override
@@ -1718,6 +1749,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
 
@@ -1731,6 +1763,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
     bool? isCompleted,
     Value<String?> note = const Value.absent(),
     DateTime? createdAt,
+    Value<DateTime?> updatedAt = const Value.absent(),
   }) => SavingEntry(
     id: id ?? this.id,
     goalId: goalId ?? this.goalId,
@@ -1741,6 +1774,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
     isCompleted: isCompleted ?? this.isCompleted,
     note: note.present ? note.value : this.note,
     createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   SavingEntry copyWithCompanion(SavingEntriesCompanion data) {
     return SavingEntry(
@@ -1759,6 +1793,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
           : this.isCompleted,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1773,7 +1808,8 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
           ..write('actualAmount: $actualAmount, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('note: $note, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1789,6 +1825,7 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
     isCompleted,
     note,
     createdAt,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1802,7 +1839,8 @@ class SavingEntry extends DataClass implements Insertable<SavingEntry> {
           other.actualAmount == this.actualAmount &&
           other.isCompleted == this.isCompleted &&
           other.note == this.note &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
@@ -1815,6 +1853,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
   final Value<bool> isCompleted;
   final Value<String?> note;
   final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const SavingEntriesCompanion({
     this.id = const Value.absent(),
@@ -1826,6 +1865,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
     this.isCompleted = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SavingEntriesCompanion.insert({
@@ -1838,6 +1878,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
     this.isCompleted = const Value.absent(),
     this.note = const Value.absent(),
     required DateTime createdAt,
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        goalId = Value(goalId),
@@ -1854,6 +1895,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
     Expression<bool>? isCompleted,
     Expression<String>? note,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1866,6 +1908,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
       if (isCompleted != null) 'is_completed': isCompleted,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1880,6 +1923,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
     Value<bool>? isCompleted,
     Value<String?>? note,
     Value<DateTime>? createdAt,
+    Value<DateTime?>? updatedAt,
     Value<int>? rowid,
   }) {
     return SavingEntriesCompanion(
@@ -1892,6 +1936,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
       isCompleted: isCompleted ?? this.isCompleted,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1926,6 +1971,9 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1944,6 +1992,7 @@ class SavingEntriesCompanion extends UpdateCompanion<SavingEntry> {
           ..write('isCompleted: $isCompleted, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5495,6 +5544,7 @@ typedef $$SavingEntriesTableCreateCompanionBuilder =
       Value<bool> isCompleted,
       Value<String?> note,
       required DateTime createdAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 typedef $$SavingEntriesTableUpdateCompanionBuilder =
@@ -5508,6 +5558,7 @@ typedef $$SavingEntriesTableUpdateCompanionBuilder =
       Value<bool> isCompleted,
       Value<String?> note,
       Value<DateTime> createdAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 
@@ -5588,6 +5639,11 @@ class $$SavingEntriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$SavingsGoalsTableFilterComposer get goalId {
     final $$SavingsGoalsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -5661,6 +5717,11 @@ class $$SavingEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$SavingsGoalsTableOrderingComposer get goalId {
     final $$SavingsGoalsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5724,6 +5785,9 @@ class $$SavingEntriesTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   $$SavingsGoalsTableAnnotationComposer get goalId {
     final $$SavingsGoalsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -5785,6 +5849,7 @@ class $$SavingEntriesTableTableManager
                 Value<bool> isCompleted = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SavingEntriesCompanion(
                 id: id,
@@ -5796,6 +5861,7 @@ class $$SavingEntriesTableTableManager
                 isCompleted: isCompleted,
                 note: note,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5809,6 +5875,7 @@ class $$SavingEntriesTableTableManager
                 Value<bool> isCompleted = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 required DateTime createdAt,
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SavingEntriesCompanion.insert(
                 id: id,
@@ -5820,6 +5887,7 @@ class $$SavingEntriesTableTableManager
                 isCompleted: isCompleted,
                 note: note,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
