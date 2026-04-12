@@ -7,6 +7,7 @@ import '../../../../core/utils/heatmap_utils.dart';
 import '../../../../core/widgets/heatmap_widget.dart';
 import 'package:intl/intl.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -80,8 +81,26 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Calendar grid
-            _buildCalendarGrid(context),
+            // Calendar grid with activity dots
+            goalsAsync.when(
+              loading: () => _buildCalendarGrid(context, {}),
+              error: (_, __) => _buildCalendarGrid(context, {}),
+              data: (goals) {
+                // Collect all completed entry dates across all goals
+                final activeDates = <DateTime>{};
+                for (final goal in goals) {
+                  final entriesAsync = ref.watch(entriesForGoalProvider(goal.id));
+                  entriesAsync.whenData((entries) {
+                    for (final e in entries) {
+                      if (e.isCompleted) {
+                        activeDates.add(DateTime(e.date.year, e.date.month, e.date.day));
+                      }
+                    }
+                  });
+                }
+                return _buildCalendarGrid(context, activeDates);
+              },
+            ),
             const SizedBox(height: 24),
 
             // Per goal heatmaps
@@ -101,11 +120,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  goal.name,
-                                  style: context.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      goal.name,
+                                      style: context.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    if (goal.isCoupleGoal) ...[
+                                      const SizedBox(width: 6),
+                                      Icon(Icons.favorite, size: 12, color: AppColors.pink),
+                                    ],
+                                  ],
                                 ),
                               ),
                               Icon(
@@ -121,16 +148,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 const LinearProgressIndicator(),
                             error: (_, __) => const SizedBox.shrink(),
                             data: (entries) {
-                              final data = <DateTime, int>{};
+                              final currUserId = ref.read(currentUserProvider)?.id ?? '';
+                              final userLevels = <DateTime, int>{};
+                              final partnerLevels = <DateTime, int>{};
+
                               for (final e in entries) {
                                 final ratio = e.expectedAmount > 0
                                     ? e.actualAmount / e.expectedAmount
                                     : 0.0;
-                                data[e.date] =
-                                    HeatmapUtils.intensityLevel(ratio);
+                                final level = HeatmapUtils.intensityLevel(ratio);
+                                final key = DateTime(e.date.year, e.date.month, e.date.day);
+
+                                final isCurrentUser = e.userId == null || e.userId == currUserId;
+                                if (isCurrentUser) {
+                                  userLevels[key] = level;
+                                } else if (goal.isCoupleGoal) {
+                                  partnerLevels[key] = level;
+                                }
                               }
+
                               return HeatmapWidget(
-                                data: data,
+                                data: userLevels,
+                                partnerData: goal.isCoupleGoal ? partnerLevels : null,
                                 startDate: goal.startDate,
                               );
                             },
@@ -149,7 +188,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _buildCalendarGrid(BuildContext context) {
+  Widget _buildCalendarGrid(BuildContext context, Set<DateTime> activeDates) {
     final daysInMonth = DateUtils.getDaysInMonth(
       _selectedMonth.year,
       _selectedMonth.month,
@@ -190,10 +229,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 dayIndex,
               );
               final isToday = DateUtils.isSameDay(date, DateTime.now());
+              final hasActivity = activeDates.contains(date);
 
               return Expanded(
                 child: Container(
-                  height: 40,
+                  height: 44,
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: isToday
@@ -204,14 +244,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         ? Border.all(color: AppColors.primary)
                         : null,
                   ),
-                  child: Center(
-                    child: Text(
-                      '$dayIndex',
-                      style: context.textTheme.bodySmall?.copyWith(
-                        fontWeight: isToday ? FontWeight.bold : null,
-                        color: isToday ? AppColors.primary : null,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$dayIndex',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          fontWeight: isToday ? FontWeight.bold : null,
+                          color: isToday ? AppColors.primary : null,
+                        ),
                       ),
-                    ),
+                      if (hasActivity)
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               );
