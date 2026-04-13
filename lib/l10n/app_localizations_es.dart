@@ -832,6 +832,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings => 'Ajustes';
 
   @override
+  String get showInWidget => 'Mostrar en Widget';
+
+  @override
+  String get showInWidgetSubtitle => 'Mostrar este objetivo en el Home Screen';
+
+  @override
   String get signUpLink => 'Regístrate';
 
   @override
@@ -943,6 +949,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get welcomeBack => 'Bienvenido de nuevo';
+
+  @override
+  String widgetGoalSet(String name) {
+    return '📱 \"$name\" se mostrará en el widget';
+  }
 
   @override
   String get yearlyPlan => 'Plan Anual';

@@ -6,6 +6,7 @@ import '../services/connectivity_service.dart';
 import '../services/notification_hook.dart';
 import '../services/supabase_service.dart';
 import '../services/sync_service.dart';
+import '../services/widget_service.dart';
 import '../../features/home/presentation/providers/home_provider.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
@@ -44,6 +45,14 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   return service;
 });
 
+/// Singleton widget service — updates iOS/Android home screen widgets.
+final widgetServiceProvider = Provider<WidgetService>((ref) {
+  final db = ref.watch(databaseProvider);
+  final service = WidgetService(db);
+  unawaited(service.init());
+  return service;
+});
+
 /// Reactive sync state for UI (syncing indicator, error badge, etc).
 final syncStateProvider = Provider<SyncState>((ref) {
   final syncService = ref.watch(syncServiceProvider);
@@ -60,4 +69,8 @@ final autoSyncProvider = FutureProvider<void>((ref) async {
 
   debugPrint('🔄 [AutoSync] User logged in — triggering initial sync');
   await syncService.syncAll();
+
+  // Update home screen widget with the selected (or first) goal
+  final widgetService = ref.read(widgetServiceProvider);
+  await widgetService.refreshWidgetFromSelectedGoal(user.id);
 });

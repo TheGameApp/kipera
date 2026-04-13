@@ -1550,6 +1550,18 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
+  /// No description provided for @showInWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in Widget'**
+  String get showInWidget;
+
+  /// No description provided for @showInWidgetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display this goal on the Home Screen'**
+  String get showInWidgetSubtitle;
+
   /// No description provided for @signUpLink.
   ///
   /// In en, this message translates to:
@@ -1771,6 +1783,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome back'**
   String get welcomeBack;
+
+  /// No description provided for @widgetGoalSet.
+  ///
+  /// In en, this message translates to:
+  /// **'📱 \"{name}\" will be shown in the widget'**
+  String widgetGoalSet(String name);
 
   /// No description provided for @yearlyPlan.
   ///

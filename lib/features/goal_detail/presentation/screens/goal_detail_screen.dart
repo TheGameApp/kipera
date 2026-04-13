@@ -517,6 +517,34 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(
+                    Icons.smartphone_rounded,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(context.l10n.showInWidget),
+                  subtitle: Text(
+                    context.l10n.showInWidgetSubtitle,
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final widgetService = ref.read(widgetServiceProvider);
+                    await widgetService.setWidgetGoal(goal.id);
+                    final user = ref.read(currentUserProvider);
+                    if (user != null) {
+                      await widgetService.refreshWidgetFromSelectedGoal(user.id);
+                    }
+                    if (context.mounted) {
+                      KiperaSnackBar.show(
+                        context,
+                        message: context.l10n.widgetGoalSet(goal.name),
+                        type: KiperaSnackType.success,
+                        icon: Icons.smartphone_rounded,
+                      );
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
                     Icons.access_time_rounded,
                     color: AppColors.primary,
                   ),

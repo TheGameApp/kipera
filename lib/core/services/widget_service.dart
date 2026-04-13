@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/app_database.dart';
+import '../utils/heatmap_utils.dart';
 
 /// Service that manages home screen widget data updates.
 ///
@@ -33,7 +35,9 @@ class WidgetService {
   // iOS widget kind
   static const String _iOSWidgetName = 'KiperaWidget';
 
-  // ignore: unused_field — will be used to auto-load goal data for widget refresh
+  // SharedPreferences key for persisting the selected widget goal
+  static const String _selectedGoalKey = 'widget_selected_goal_id';
+
   final AppDatabase _db;
 
   WidgetService(this._db);
@@ -42,6 +46,67 @@ class WidgetService {
   Future<void> init() async {
     await HomeWidget.setAppGroupId(_iOSAppGroupId);
   }
+
+  // ── Goal Selection ──
+
+  /// Set which goal should be displayed in the home screen widget.
+  Future<void> setWidgetGoal(String goalId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedGoalKey, goalId);
+    debugPrint('📱 [WidgetService] Widget goal set to: $goalId');
+  }
+
+  /// Get the currently selected widget goal ID (null if none).
+  Future<String?> getWidgetGoalId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_selectedGoalKey);
+  }
+
+  /// Refresh the widget using data from the currently selected goal.
+  /// If no goal is selected, uses the first active goal.
+  Future<void> refreshWidgetFromSelectedGoal(String userId) async {
+    try {
+      final selectedId = await getWidgetGoalId();
+      SavingsGoal? goal;
+
+      if (selectedId != null) {
+        goal = await _db.goalsDao.getGoalById(selectedId);
+      }
+
+      // Fallback to first active goal if selected goal not found
+      if (goal == null) {
+        final goals = await _db.goalsDao.getActiveGoals(userId);
+        if (goals.isNotEmpty) {
+          goal = goals.first;
+          await setWidgetGoal(goal.id);
+        }
+      }
+
+      if (goal == null) {
+        await clearWidgetData();
+        return;
+      }
+
+      final totalSaved = await _db.entriesDao.getTotalSavedForGoal(goal.id);
+      final entries = await _db.entriesDao.getCompletedEntriesForGoal(goal.id);
+      final dates = entries.map((e) => e.date).toList();
+      final streak = HeatmapUtils.calculateStreak(dates);
+
+      await updateWidgetData(
+        goalName: goal.name,
+        totalSaved: totalSaved,
+        targetAmount: goal.targetAmount,
+        colorHex: goal.colorHex,
+        iconName: goal.iconName,
+        streak: streak,
+        isCoupleGoal: goal.isCoupleGoal,
+      );
+    } catch (e) {
+      debugPrint('❌ [WidgetService] Failed to refresh widget: $e');
+    }
+  }
+
+  // ── Data Update ──
 
   /// Update widget data for a specific goal.
   /// Call this after every check-in, sync, or goal change.

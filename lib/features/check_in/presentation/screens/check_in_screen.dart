@@ -12,10 +12,10 @@ import '../../../../core/widgets/kipera_snackbar.dart';
 import '../../../../core/utils/achievement_checker.dart';
 import '../../../../core/utils/heatmap_utils.dart';
 import '../../../../core/utils/saving_calculator.dart';
+import '../../../../core/providers/sync_provider.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
-import '../../../../core/providers/sync_provider.dart';
 
 class CheckInScreen extends ConsumerStatefulWidget {
   final String goalId;
@@ -167,6 +167,25 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
 
     // Force background sync to push this entry to partner immediately
     ref.read(syncServiceProvider).syncAll().ignore();
+
+    // Update home screen widget only if this is the selected widget goal
+    try {
+      final widgetService = ref.read(widgetServiceProvider);
+      final selectedId = await widgetService.getWidgetGoalId();
+      if (selectedId == null || selectedId == widget.goalId) {
+        await widgetService.updateWidgetData(
+          goalName: goal.name,
+          totalSaved: totalSaved,
+          targetAmount: goal.targetAmount,
+          colorHex: goal.colorHex,
+          iconName: goal.iconName,
+          streak: streak,
+          isCoupleGoal: goal.isCoupleGoal,
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ [CheckIn] Widget update failed: $e');
+    }
 
     if (mounted) {
       setState(() => _saving = false);

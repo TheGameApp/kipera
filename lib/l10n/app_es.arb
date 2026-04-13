@@ -411,6 +411,8 @@
   "sendResetLink": "Enviar enlace",
   "setTargetAmount": "Establece una cantidad mayor a $0 para tu meta.",
   "settings": "Ajustes",
+  "showInWidget": "Mostrar en Widget",
+  "showInWidgetSubtitle": "Mostrar este objetivo en el Home Screen",
   "signUpLink": "Regístrate",
   "skip": "Omitir",
   "someone": "Alguien",
@@ -458,6 +460,14 @@
   "weeklyWarrior": "Guerrero Semanal",
   "weeklyWarriorDesc": "Ahorra 7 días seguidos",
   "welcomeBack": "Bienvenido de nuevo",
+  "widgetGoalSet": "📱 \"{name}\" se mostrará en el widget",
+  "@widgetGoalSet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "yearlyPlan": "Plan Anual",
   "yesterdayLabel": "Ayer"
 }

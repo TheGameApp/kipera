@@ -411,6 +411,8 @@
   "sendResetLink": "Send Reset Link",
   "setTargetAmount": "Set a target amount greater than $0 for your goal.",
   "settings": "Settings",
+  "showInWidget": "Show in Widget",
+  "showInWidgetSubtitle": "Display this goal on the Home Screen",
   "signUpLink": "Sign Up",
   "skip": "Skip",
   "someone": "Someone",
@@ -458,6 +460,14 @@
   "weeklyWarrior": "Weekly Warrior",
   "weeklyWarriorDesc": "Save for 7 days in a row",
   "welcomeBack": "Welcome back",
+  "widgetGoalSet": "📱 \"{name}\" will be shown in the widget",
+  "@widgetGoalSet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "yearlyPlan": "Yearly Plan",
   "yesterdayLabel": "Yesterday"
 }
