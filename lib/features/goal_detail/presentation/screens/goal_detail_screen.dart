@@ -34,9 +34,11 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Sync once when entering the screen to fetch partner's latest entries
+    // Sync once when entering the screen to fetch partner's latest entries.
+    // Per-goal: avoids the cost of pulling every goal/entry/member the user
+    // has access to just because we opened one detail screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(syncServiceProvider).syncAll();
+      ref.read(syncServiceProvider).syncGoal(goalId);
     });
   }
 
@@ -749,7 +751,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
           icon: Icons.edit_outlined,
         );
       }
-      ref.read(syncServiceProvider).syncAll().ignore();
+      ref.read(syncServiceProvider).syncGoal(goal.id).ignore();
     }
   }
 
@@ -1003,7 +1005,7 @@ class _InvitePartnerDialogState extends State<_InvitePartnerDialog> {
                         }
 
                         // Asegurar que Supabase tiene el objetivo arriba ANTES de enviar la invitación
-                        await ref.read(syncServiceProvider).syncAll();
+                        await ref.read(syncServiceProvider).syncGoal(widget.goalId);
 
                         final invService = ref.read(invitationServiceProvider);
                         await invService.sendInvitation(

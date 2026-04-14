@@ -706,6 +706,215 @@ struct KiperaMediumView: View {
     }
 }
 
+// MARK: - Accessory Circular (Lock Screen)
+// Custom semi-arc with percentage — mini version of the home screen widget
+
+struct KiperaAccessoryCircularView: View {
+    let entry: KiperaEntry
+
+    var body: some View {
+        if entry.isEmpty {
+            ZStack {
+                AccessoryWidgetBackground()
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .medium))
+            }
+        } else {
+            ZStack {
+                AccessoryWidgetBackground()
+
+                // Track arc
+                SemiArcTrack()
+                    .stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                    .opacity(0.2)
+                    .frame(width: 38, height: 38)
+
+                // Progress arc
+                SemiArc(progress: entry.progress)
+                    .stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                    .frame(width: 38, height: 38)
+                    .widgetAccentable()
+
+                // Percentage inside
+                VStack(spacing: -2) {
+                    Text("\(Int(entry.progress * 100))")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                    Text("%")
+                        .font(.system(size: 6, weight: .medium, design: .rounded))
+                        .opacity(0.7)
+                }
+                .offset(y: -1)
+
+                // Couple badge at bottom
+                if entry.isCoupleGoal {
+                    HStack(spacing: -3) {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 5))
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 5))
+                    }
+                    .offset(y: 16)
+                    .opacity(0.6)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Accessory Rectangular (Lock Screen)
+// Couple: two figures walking toward a star — mini journey scene
+// Solo: figure walking toward star with progress arc
+
+struct KiperaAccessoryRectangularView: View {
+    let entry: KiperaEntry
+
+    var body: some View {
+        if entry.isEmpty {
+            HStack(spacing: 6) {
+                Image(systemName: "star.circle")
+                    .font(.title3)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Kipera")
+                        .font(.system(.headline, design: .rounded))
+                    Text("Add a savings goal")
+                        .font(.system(.caption, design: .rounded))
+                        .opacity(0.6)
+                }
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 3) {
+                // Top: goal name + streak
+                HStack(spacing: 4) {
+                    Text(entry.goalName)
+                        .font(.system(.caption, design: .rounded).weight(.semibold))
+                        .lineLimit(1)
+                    Spacer()
+                    if entry.streak > 0 {
+                        HStack(spacing: 1) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 7))
+                            Text("\(entry.streak)")
+                                .font(.system(size: 9, weight: .bold, design: .rounded))
+                        }
+                    }
+                }
+
+                // Middle: journey scene
+                GeometryReader { geo in
+                    let w = geo.size.width
+                    let h = geo.size.height
+                    let centerX = w * 0.5
+                    let centerY = h * 0.5
+                    let p = CGFloat(entry.progress)
+
+                    ZStack {
+                        if entry.isCoupleGoal {
+                            // Two figures approaching from both sides
+                            let leftX = w * (0.04 + p * 0.30)
+                            let rightX = w * (0.96 - p * 0.30)
+
+                            // Dotted paths
+                            DottedLine()
+                                .stroke(style: StrokeStyle(lineWidth: 0.8, lineCap: .round, dash: [1.5, 3]))
+                                .opacity(0.3)
+                                .frame(width: max(centerX - leftX - 10, 1), height: 1)
+                                .position(x: (leftX + centerX) / 2, y: centerY)
+
+                            DottedLine()
+                                .stroke(style: StrokeStyle(lineWidth: 0.8, lineCap: .round, dash: [1.5, 3]))
+                                .opacity(0.3)
+                                .frame(width: max(rightX - centerX - 10, 1), height: 1)
+                                .position(x: (rightX + centerX) / 2, y: centerY)
+
+                            // Left person
+                            Image(systemName: "figure.walk")
+                                .font(.system(size: 14, weight: .light))
+                                .position(x: leftX, y: centerY)
+                                .widgetAccentable()
+
+                            // Right person (mirrored)
+                            Image(systemName: "figure.walk")
+                                .font(.system(size: 13, weight: .light))
+                                .scaleEffect(x: -1, y: 1)
+                                .position(x: rightX, y: centerY)
+                                .widgetAccentable()
+
+                        } else {
+                            // Solo: one person approaching
+                            let personX = w * (0.04 + p * 0.32)
+
+                            DottedLine()
+                                .stroke(style: StrokeStyle(lineWidth: 0.8, lineCap: .round, dash: [1.5, 3]))
+                                .opacity(0.3)
+                                .frame(width: max(centerX - personX - 10, 1), height: 1)
+                                .position(x: (personX + centerX) / 2, y: centerY)
+
+                            Image(systemName: "figure.walk")
+                                .font(.system(size: 15, weight: .light))
+                                .position(x: personX, y: centerY)
+                                .widgetAccentable()
+                        }
+
+                        // Central goal star
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 10, weight: .regular))
+                            .position(x: centerX, y: centerY)
+                            .widgetAccentable()
+
+                        // Sparkles
+                        Image(systemName: "sparkle")
+                            .font(.system(size: 4, weight: .bold))
+                            .opacity(0.4)
+                            .position(x: centerX + 9, y: centerY - 7)
+
+                        // Percentage below star
+                        Text("\(Int(entry.progress * 100))%")
+                            .font(.system(size: 7, weight: .semibold, design: .rounded))
+                            .opacity(0.7)
+                            .position(x: centerX, y: centerY + 10)
+                    }
+                }
+                .frame(height: 22)
+
+                // Bottom: amount
+                HStack(spacing: 3) {
+                    Text(fmtCurrency(entry.saved))
+                        .font(.system(.caption2, design: .rounded).weight(.bold))
+                    Text("/ \(fmtCurrency(entry.target))")
+                        .font(.system(.caption2, design: .rounded))
+                        .opacity(0.5)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Accessory Inline (Lock Screen)
+
+struct KiperaAccessoryInlineView: View {
+    let entry: KiperaEntry
+
+    var body: some View {
+        if entry.isEmpty {
+            Label("Kipera: Add a Goal", systemImage: "star")
+        } else {
+            ViewThatFits {
+                Label {
+                    Text("\(entry.goalName) \(Int(entry.progress * 100))% \(entry.isCoupleGoal ? "· \u{1F46B}" : "")")
+                } icon: {
+                    Image(systemName: entry.isCoupleGoal ? "person.2.fill" : "star.fill")
+                }
+                Label {
+                    Text("\(entry.goalName) \(Int(entry.progress * 100))%")
+                } icon: {
+                    Image(systemName: "star.fill")
+                }
+                Text("\(Int(entry.progress * 100))% · \(fmtCurrency(entry.saved))")
+            }
+        }
+    }
+}
+
 // MARK: - Widget Config
 
 struct KiperaWidget: Widget {
@@ -722,7 +931,13 @@ struct KiperaWidget: Widget {
         }
         .configurationDisplayName("Kipera Savings")
         .description("Track your savings goal progress at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            .accessoryCircular,
+            .accessoryRectangular,
+            .accessoryInline
+        ])
     }
 }
 
@@ -736,6 +951,12 @@ struct KiperaWidgetEntryView: View {
         switch family {
         case .systemMedium:
             KiperaMediumView(entry: entry)
+        case .accessoryCircular:
+            KiperaAccessoryCircularView(entry: entry)
+        case .accessoryRectangular:
+            KiperaAccessoryRectangularView(entry: entry)
+        case .accessoryInline:
+            KiperaAccessoryInlineView(entry: entry)
         default:
             KiperaSmallView(entry: entry)
         }
@@ -757,4 +978,25 @@ struct KiperaWidgetEntryView: View {
 } timeline: {
     KiperaEntry(date: .now, goalName: "Dream House 🏠", progress: 0.42, saved: 12600, target: 30000, colorHex: "A855F7", iconName: "home", streak: 14, isCoupleGoal: true, isEmpty: false)
     KiperaEntry(date: .now, goalName: "Emergency Fund 🛡️", progress: 0.88, saved: 4400, target: 5000, colorHex: "7C3AED", iconName: "savings", streak: 21, isCoupleGoal: false, isEmpty: false)
+}
+
+#Preview(as: .accessoryCircular) {
+    KiperaWidget()
+} timeline: {
+    KiperaEntry(date: .now, goalName: "Dream House", progress: 0.65, saved: 650, target: 1000, colorHex: "A855F7", iconName: "home", streak: 7, isCoupleGoal: false, isEmpty: false)
+    KiperaEntry(date: .now, goalName: "", progress: 0, saved: 0, target: 0, colorHex: "", iconName: "", streak: 0, isCoupleGoal: false, isEmpty: true)
+}
+
+#Preview(as: .accessoryRectangular) {
+    KiperaWidget()
+} timeline: {
+    KiperaEntry(date: .now, goalName: "Dream House 🏠", progress: 0.42, saved: 12600, target: 30000, colorHex: "A855F7", iconName: "home", streak: 14, isCoupleGoal: true, isEmpty: false)
+    KiperaEntry(date: .now, goalName: "", progress: 0, saved: 0, target: 0, colorHex: "", iconName: "", streak: 0, isCoupleGoal: false, isEmpty: true)
+}
+
+#Preview(as: .accessoryInline) {
+    KiperaWidget()
+} timeline: {
+    KiperaEntry(date: .now, goalName: "Emergency Fund", progress: 0.88, saved: 4400, target: 5000, colorHex: "7C3AED", iconName: "savings", streak: 21, isCoupleGoal: false, isEmpty: false)
+    KiperaEntry(date: .now, goalName: "", progress: 0, saved: 0, target: 0, colorHex: "", iconName: "", streak: 0, isCoupleGoal: false, isEmpty: true)
 }

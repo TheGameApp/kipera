@@ -34,6 +34,24 @@ class SupabaseService {
     }
   }
 
+  /// Batch fetch profiles by a list of user ids. Avoids N+1 when we need to
+  /// resolve many partner/owner display names at once.
+  Future<List<Map<String, dynamic>>> fetchProfilesByIds(
+    List<String> userIds,
+  ) async {
+    if (userIds.isEmpty) return const [];
+    try {
+      final response = await _client
+          .from('profiles')
+          .select('id, email, display_name, avatar_url')
+          .inFilter('id', userIds);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('❌ [SupabaseService] fetchProfilesByIds error: $e');
+      return const [];
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Goals
   // ---------------------------------------------------------------------------
@@ -97,18 +115,18 @@ class SupabaseService {
   }
 
   /// Fetch entries updated after [since] for all goals the user can access.
+  /// Uses server_updated_at (set by DB trigger on INSERT/UPDATE) so that
+  /// entries pushed late by a partner are never missed.
   Future<List<Map<String, dynamic>>> fetchEntriesSince(DateTime since) async {
     try {
       final response = await _client
           .from('saving_entries')
           .select()
-          .or('updated_at.gte.${since.toIso8601String()},created_at.gte.${since.toIso8601String()}')
-          .order('created_at', ascending: true);
+          .gte('server_updated_at', since.toIso8601String())
+          .order('server_updated_at', ascending: true);
       final results = List<Map<String, dynamic>>.from(response);
       for (final r in results) {
-        final updatedAt = DateTime.tryParse(r['updated_at'] as String? ?? '');
-        final reason = (updatedAt != null && updatedAt.isAfter(since)) ? 'updated_at' : 'created_at';
-        debugPrint('📥 [fetchEntriesSince] entry ${r['id']} matched by $reason');
+        debugPrint('📥 [fetchEntriesSince] entry ${r['id']} server_updated_at: ${r['server_updated_at']}');
       }
       return results;
     } catch (e) {
@@ -131,6 +149,24 @@ class SupabaseService {
     } catch (e) {
       debugPrint('❌ [SupabaseService] fetchGoalMembers error: $e');
       return [];
+    }
+  }
+
+  /// Batch version of [fetchGoalMembers]. Returns rows for all given goals in
+  /// a single round-trip so the sync loop doesn't pay N requests.
+  Future<List<Map<String, dynamic>>> fetchMembersForGoals(
+    List<String> goalIds,
+  ) async {
+    if (goalIds.isEmpty) return const [];
+    try {
+      final response = await _client
+          .from('goal_members')
+          .select('*, profiles(display_name, avatar_url, email)')
+          .inFilter('goal_id', goalIds);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('❌ [SupabaseService] fetchMembersForGoals error: $e');
+      return const [];
     }
   }
 
@@ -223,13 +259,15 @@ class SupabaseService {
   // ---------------------------------------------------------------------------
 
   /// Fetch goals updated after [since] for the current user.
+  /// Uses server_updated_at (set by DB trigger on INSERT/UPDATE) so that
+  /// goals pushed late are never missed by sync.
   Future<List<Map<String, dynamic>>> fetchGoalsSince(DateTime since) async {
     try {
       final response = await _client
           .from('savings_goals')
           .select()
-          .gte('updated_at', since.toIso8601String())
-          .order('updated_at', ascending: true);
+          .gte('server_updated_at', since.toIso8601String())
+          .order('server_updated_at', ascending: true);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       debugPrint('❌ [SupabaseService] fetchGoalsSince error: $e');

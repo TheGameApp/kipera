@@ -165,8 +165,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     ref.invalidate(entriesForGoalProvider(widget.goalId));
     ref.invalidate(goalDetailProvider(widget.goalId));
 
-    // Force background sync to push this entry to partner immediately
-    ref.read(syncServiceProvider).syncAll().ignore();
+    // Force background sync to push this entry to partner immediately.
+    // Per-goal is enough: we only pushed an entry for this goal.
+    ref.read(syncServiceProvider).syncGoal(widget.goalId).ignore();
 
     // Update home screen widget only if this is the selected widget goal
     try {

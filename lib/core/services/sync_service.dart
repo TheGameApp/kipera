@@ -26,7 +26,15 @@ class SyncService {
   RealtimeChannel? _realtimeChannel;
   final ValueNotifier<SyncState> stateNotifier = ValueNotifier(SyncState.idle);
 
+  /// Coalescing flag: set when syncAll() is called while another sync is
+  /// already running. After the current sync finishes we run one more pass so
+  /// that mutations enqueued during the in-flight sync (e.g. a check-in) are
+  /// not left stranded in sync_queue.
+  bool _pendingResync = false;
+
   static const _kLastSyncKey = 'kipera_last_sync_at';
+  static const _kDiscardLogKey = 'kipera_sync_discards';
+  static const _kDiscardLogMax = 100;
 
   /// Persisted via SharedPreferences. null = nunca sincronizado → descarga todo.
   DateTime? _lastSyncAt;
@@ -102,7 +110,10 @@ class SyncService {
   /// Full sync: pull remote changes then push local queue.
   Future<void> syncAll() async {
     if (stateNotifier.value == SyncState.syncing) {
-      debugPrint('⏳ [SyncService] Already syncing — skipping');
+      // Another sync is in-flight. Flag a follow-up run so any mutations
+      // queued in the meantime get pushed as soon as the current pass ends.
+      _pendingResync = true;
+      debugPrint('⏳ [SyncService] Already syncing — queued follow-up');
       return;
     }
 
@@ -118,10 +129,15 @@ class SyncService {
     try {
       // 1. PUSH: Send local mutations to the server first
       await pushLocalChanges();
-      
+
       // 2. PULL: Fetch server's final state
       await pullRemoteChanges();
-      final now = DateTime.now();
+      // Use UTC so the ISO string carries a 'Z' suffix. Supabase compares
+      // against `server_updated_at` (timestamptz); without the Z, a naive
+      // local time is (mis)interpreted as UTC and shifts the cursor by the
+      // device's timezone offset — causing the same entries to be pulled
+      // every sync.
+      final now = DateTime.now().toUtc();
       _lastSyncAt = now;
       await _saveLastSyncAt(now);          // 💾 persiste en disco
       stateNotifier.value = SyncState.idle;
@@ -129,6 +145,58 @@ class SyncService {
     } catch (e) {
       debugPrint('❌ [SyncService] Sync error: $e');
       stateNotifier.value = SyncState.error;
+    }
+
+    // Coalesced follow-up: if someone called syncAll() while we were busy,
+    // run exactly one more pass to flush whatever was enqueued.
+    if (_pendingResync) {
+      _pendingResync = false;
+      debugPrint('🔁 [SyncService] Running coalesced follow-up sync');
+      unawaited(syncAll());
+    }
+  }
+
+  /// Lightweight sync for a single goal. Used by screens that only care about
+  /// one goal (goal detail, check-in) so they don't pay the cost of pulling
+  /// every goal/entry/member the user has access to.
+  ///
+  /// Semantics:
+  /// * Pushes only the queue items related to [goalId] (goal row + its entries)
+  /// * Pulls all entries for that goal (bounded set, usually <100)
+  /// * Pulls members + owner profile for that goal if it's a couple goal
+  Future<void> syncGoal(String goalId) async {
+    if (stateNotifier.value == SyncState.syncing) {
+      // Reuse the same coalescing flag as syncAll — the follow-up will be a
+      // full sync, which is a safe superset of what we'd need here.
+      _pendingResync = true;
+      debugPrint('⏳ [SyncService] Already syncing — queued follow-up (from syncGoal)');
+      return;
+    }
+
+    final connected = await _connectivity.isConnected;
+    if (!connected) {
+      debugPrint('📴 [SyncService] No connection — skipping syncGoal');
+      return;
+    }
+
+    stateNotifier.value = SyncState.syncing;
+    debugPrint('🔄 [SyncService] Starting syncGoal($goalId)...');
+
+    try {
+      await _pushLocalChangesForGoal(goalId);
+      await _pullEntriesForGoal(goalId);
+      await _pullMembersForGoal(goalId);
+      stateNotifier.value = SyncState.idle;
+      debugPrint('✅ [SyncService] syncGoal($goalId) completed');
+    } catch (e) {
+      debugPrint('❌ [SyncService] syncGoal error: $e');
+      stateNotifier.value = SyncState.error;
+    }
+
+    if (_pendingResync) {
+      _pendingResync = false;
+      debugPrint('🔁 [SyncService] Running coalesced follow-up sync (from syncGoal)');
+      unawaited(syncAll());
     }
   }
 
@@ -158,7 +226,7 @@ class SyncService {
   }
 
   Future<void> _pullGoals() async {
-    final since = _lastSyncAt ?? DateTime(2000);
+    final since = _lastSyncAt ?? DateTime.utc(2000);
     final remoteGoals = await _supabase.fetchGoalsSince(since);
     debugPrint('⬇️ [SyncService] Pulled ${remoteGoals.length} goals');
 
@@ -209,7 +277,7 @@ class SyncService {
   }
 
   Future<void> _pullEntries() async {
-    final since = _lastSyncAt ?? DateTime(2000);
+    final since = _lastSyncAt ?? DateTime.utc(2000);
     final remoteEntries = await _supabase.fetchEntriesSince(since);
     debugPrint('⬇️ [SyncService] Pulled ${remoteEntries.length} entries');
 
@@ -254,53 +322,72 @@ class SyncService {
     // downloaded yet (chicken-and-egg: we need members to filter by user,
     // but we're here to download members).
     final allGoals = await _db.goalsDao.getActiveGoals('');
+    final coupleGoals = allGoals.where((g) => g.isCoupleGoal).toList();
+    if (coupleGoals.isEmpty) return;
 
-    // For couple goals, fetch their members and sync profiles
+    final coupleIds = coupleGoals.map((g) => g.id).toList();
+
+    // 1️⃣ Single batch query for ALL couple-goal members (includes partner
+    // profiles via the embedded select). Previously this loop made N HTTP
+    // requests, one per goal.
+    final remoteMembers = await _supabase.fetchMembersForGoals(coupleIds);
+    debugPrint(
+      '⬇️ [SyncService] Pulled ${remoteMembers.length} members for '
+      '${coupleGoals.length} couple goals (batched)',
+    );
+
     final now = DateTime.now();
-    for (final goal in allGoals) {
-      if (goal.isCoupleGoal) {
-        final remoteMembers = await _supabase.fetchGoalMembers(goal.id);
-        debugPrint('⬇️ [SyncService] Pulled ${remoteMembers.length} members for goal ${goal.id}');
-        for (final member in remoteMembers) {
-          final userId = member['user_id'] as String;
-          await _db.goalMembersDao.upsertMember(GoalMembersCompanion(
-            id: Value(member['id'] as String),
-            goalId: Value(member['goal_id'] as String),
-            userId: Value(userId),
-            role: Value(member['role'] as String),
-            status: Value(member['status'] as String),
-            joinedAt: Value(member['joined_at'] != null
-                ? DateTime.parse(member['joined_at'] as String)
-                : null),
-          ));
+    for (final member in remoteMembers) {
+      final userId = member['user_id'] as String;
+      await _db.goalMembersDao.upsertMember(GoalMembersCompanion(
+        id: Value(member['id'] as String),
+        goalId: Value(member['goal_id'] as String),
+        userId: Value(userId),
+        role: Value(member['role'] as String),
+        status: Value(member['status'] as String),
+        joinedAt: Value(member['joined_at'] != null
+            ? DateTime.parse(member['joined_at'] as String)
+            : null),
+      ));
 
-          // Sync partner profile locally for offline display
-          final profile = member['profiles'] as Map<String, dynamic>?;
-          if (profile != null) {
-            await _db.usersDao.upsertUser(UsersCompanion(
-              id: Value(userId),
-              email: Value(profile['email'] as String? ?? ''),
-              displayName: Value(profile['display_name'] as String?),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            ));
-          }
-        }
+      final profile = member['profiles'] as Map<String, dynamic>?;
+      if (profile != null) {
+        await _db.usersDao.upsertUser(UsersCompanion(
+          id: Value(userId),
+          email: Value(profile['email'] as String? ?? ''),
+          displayName: Value(profile['display_name'] as String?),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+    }
 
-        // Also sync the goal owner's profile (owner has no goal_members row)
-        final ownerInDb = await _db.usersDao.getUserById(goal.userId);
-        if (ownerInDb == null || ownerInDb.displayName == null) {
-          final ownerProfile = await _supabase.getProfile(goal.userId);
-          if (ownerProfile != null) {
-            await _db.usersDao.upsertUser(UsersCompanion(
-              id: Value(goal.userId),
-              email: Value(ownerProfile['email'] as String? ?? ''),
-              displayName: Value(ownerProfile['display_name'] as String?),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            ));
-          }
-        }
+    // 2️⃣ Owners don't appear in goal_members, so their profile isn't embedded
+    // in the batch above. Figure out which owners still need a profile locally
+    // and fetch them in a single query.
+    final ownerIds = coupleGoals.map((g) => g.userId).toSet().toList();
+    final missingOwnerIds = <String>[];
+    for (final ownerId in ownerIds) {
+      final ownerInDb = await _db.usersDao.getUserById(ownerId);
+      if (ownerInDb == null || ownerInDb.displayName == null) {
+        missingOwnerIds.add(ownerId);
+      }
+    }
+
+    if (missingOwnerIds.isNotEmpty) {
+      final ownerProfiles =
+          await _supabase.fetchProfilesByIds(missingOwnerIds);
+      debugPrint(
+        '⬇️ [SyncService] Pulled ${ownerProfiles.length} owner profiles (batched)',
+      );
+      for (final profile in ownerProfiles) {
+        await _db.usersDao.upsertUser(UsersCompanion(
+          id: Value(profile['id'] as String),
+          email: Value(profile['email'] as String? ?? ''),
+          displayName: Value(profile['display_name'] as String?),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
       }
     }
   }
@@ -310,6 +397,162 @@ class SyncService {
     // They don't need periodic pull since they're checked when the
     // invitations screen opens
     debugPrint('⬇️ [SyncService] Invitations pulled on-demand (skip)');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Per-goal helpers (used by syncGoal)
+  // ---------------------------------------------------------------------------
+
+  /// Pull all entries for a single goal and upsert them locally.
+  /// Doesn't use the global cursor: a single goal's entries are a bounded set
+  /// (usually <100) and we want the freshest data for the screen the user is
+  /// looking at.
+  Future<void> _pullEntriesForGoal(String goalId) async {
+    final remoteEntries = await _supabase.fetchEntriesForGoal(goalId);
+    debugPrint(
+      '⬇️ [SyncService] Pulled ${remoteEntries.length} entries for goal $goalId',
+    );
+
+    for (final remote in remoteEntries) {
+      await _db.entriesDao.upsertEntry(
+        SavingEntriesCompanion(
+          id: Value(remote['id'] as String),
+          goalId: Value(remote['goal_id'] as String),
+          userId: Value(remote['user_id'] as String),
+          date: Value(_parseDateOnly(remote['date'] as String)),
+          expectedAmount: Value((remote['expected_amount'] as num).toDouble()),
+          actualAmount: Value((remote['actual_amount'] as num).toDouble()),
+          isCompleted: Value(remote['is_completed'] as bool? ?? false),
+          note: Value(remote['note'] as String?),
+          createdAt: Value(DateTime.parse(remote['created_at'] as String)),
+          updatedAt: Value(remote['updated_at'] != null
+              ? DateTime.parse(remote['updated_at'] as String)
+              : null),
+        ),
+        enqueueSync: false,
+      );
+
+      // Partner check-in notification hook
+      final goal = await _db.goalsDao.getGoalById(goalId);
+      final userId = remote['user_id'] as String;
+      if (goal != null && goal.userId != userId && goal.isCoupleGoal) {
+        await _notificationHook.onPartnerCheckIn(
+          goalId,
+          userId,
+          (remote['actual_amount'] as num).toDouble(),
+        );
+      }
+    }
+  }
+
+  /// Pull members + owner profile for a single goal. 1-2 HTTP calls max.
+  Future<void> _pullMembersForGoal(String goalId) async {
+    final goal = await _db.goalsDao.getGoalById(goalId);
+    if (goal == null || !goal.isCoupleGoal) return;
+
+    final remoteMembers = await _supabase.fetchGoalMembers(goalId);
+    debugPrint(
+      '⬇️ [SyncService] Pulled ${remoteMembers.length} members for goal $goalId',
+    );
+
+    final now = DateTime.now();
+    for (final member in remoteMembers) {
+      final userId = member['user_id'] as String;
+      await _db.goalMembersDao.upsertMember(GoalMembersCompanion(
+        id: Value(member['id'] as String),
+        goalId: Value(member['goal_id'] as String),
+        userId: Value(userId),
+        role: Value(member['role'] as String),
+        status: Value(member['status'] as String),
+        joinedAt: Value(member['joined_at'] != null
+            ? DateTime.parse(member['joined_at'] as String)
+            : null),
+      ));
+
+      final profile = member['profiles'] as Map<String, dynamic>?;
+      if (profile != null) {
+        await _db.usersDao.upsertUser(UsersCompanion(
+          id: Value(userId),
+          email: Value(profile['email'] as String? ?? ''),
+          displayName: Value(profile['display_name'] as String?),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+    }
+
+    // Ensure the owner's profile is cached (owner has no goal_members row).
+    final ownerInDb = await _db.usersDao.getUserById(goal.userId);
+    if (ownerInDb == null || ownerInDb.displayName == null) {
+      final ownerProfile = await _supabase.getProfile(goal.userId);
+      if (ownerProfile != null) {
+        await _db.usersDao.upsertUser(UsersCompanion(
+          id: Value(goal.userId),
+          email: Value(ownerProfile['email'] as String? ?? ''),
+          displayName: Value(ownerProfile['display_name'] as String?),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+    }
+  }
+
+  /// Push only the sync_queue items related to [goalId]. Covers:
+  /// * `savings_goals` rows where recordId == goalId
+  /// * `saving_entries` rows whose payload carries this goalId
+  ///
+  /// Mirrors the error handling of [pushLocalChanges] (including the silent
+  /// discard of 23503/23505 with a persistent log) so behavior stays
+  /// consistent between global and per-goal pushes.
+  Future<void> _pushLocalChangesForGoal(String goalId) async {
+    final pending = await _db.syncQueueDao.getPending();
+
+    final filtered = pending.where((item) {
+      if (item.syncTableName == 'savings_goals') {
+        return item.recordId == goalId;
+      }
+      if (item.syncTableName == 'saving_entries') {
+        try {
+          final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+          final itemGoalId = payload['goal_id'] ?? payload['goalId'];
+          return itemGoalId == goalId;
+        } catch (_) {
+          return false;
+        }
+      }
+      return false;
+    }).toList();
+
+    debugPrint(
+      '⬆️ [SyncService] Processing ${filtered.length} pending items for goal $goalId',
+    );
+
+    for (final item in filtered) {
+      try {
+        final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+        switch (item.syncTableName) {
+          case 'savings_goals':
+            await _pushGoal(item.action, payload);
+            break;
+          case 'saving_entries':
+            await _pushEntry(item.action, payload);
+            break;
+        }
+        await _db.syncQueueDao.markSynced(item.id);
+      } catch (e) {
+        debugPrint('❌ [SyncService] Failed to push item ${item.id}: $e');
+
+        final isUnrecoverable = e.toString().contains('23503') ||
+            e.toString().contains('23505');
+        if (isUnrecoverable) {
+          debugPrint('🗑️ [SyncService] Discarding unrecoverable item ${item.id}');
+          await _logDiscard(item, e);
+          await _db.syncQueueDao.markSynced(item.id);
+        }
+      }
+    }
+
+    await _db.syncQueueDao.clearSynced();
   }
 
   // ---------------------------------------------------------------------------
@@ -346,6 +589,7 @@ class SyncService {
             e.toString().contains('23505');                        // unique violation
         if (isUnrecoverable) {
           debugPrint('🗑️ [SyncService] Discarding unrecoverable item ${item.id}');
+          await _logDiscard(item, e);
           await _db.syncQueueDao.markSynced(item.id);
         }
       }
@@ -353,6 +597,62 @@ class SyncService {
 
     // Cleanup synced items
     await _db.syncQueueDao.clearSynced();
+  }
+
+  /// Persistent log of items discarded due to unrecoverable errors (FK/unique
+  /// violations). Capped to the last [_kDiscardLogMax] entries.
+  Future<void> _logDiscard(SyncQueueData item, Object error) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final existing = prefs.getStringList(_kDiscardLogKey) ?? const [];
+
+      String? recordId;
+      try {
+        final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+        recordId = payload['id']?.toString();
+      } catch (_) {}
+
+      final entry = jsonEncode({
+        'timestamp': DateTime.now().toIso8601String(),
+        'queue_id': item.id,
+        'table': item.syncTableName,
+        'action': item.action,
+        'record_id': recordId,
+        'payload': item.payload,
+        'error': error.toString(),
+      });
+
+      final updated = [...existing, entry];
+      final trimmed = updated.length > _kDiscardLogMax
+          ? updated.sublist(updated.length - _kDiscardLogMax)
+          : updated;
+
+      await prefs.setStringList(_kDiscardLogKey, trimmed);
+    } catch (e) {
+      debugPrint('⚠️ [SyncService] Failed to persist discard log: $e');
+    }
+  }
+
+  /// Returns the persisted discard log, newest last. Each entry is a JSON
+  /// object with timestamp, queue_id, table, action, record_id, payload, error.
+  Future<List<Map<String, dynamic>>> getDiscardLog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_kDiscardLogKey) ?? const [];
+    return raw
+        .map((s) {
+          try {
+            return jsonDecode(s) as Map<String, dynamic>;
+          } catch (_) {
+            return <String, dynamic>{'raw': s};
+          }
+        })
+        .toList();
+  }
+
+  /// Clears the persisted discard log.
+  Future<void> clearDiscardLog() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kDiscardLogKey);
   }
 
   Future<void> _pushGoal(String action, Map<String, dynamic> payload) async {
