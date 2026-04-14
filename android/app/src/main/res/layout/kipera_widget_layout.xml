@@ -1,19 +1,30 @@
-<!-- 
-  kipera_widget_layout.xml — Android Widget Layout
-  Place at: android/app/src/main/res/layout/kipera_widget_layout.xml
--->
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kipera Widget Layout — Modern design matching iOS -->
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@android:color/white">
+    android:padding="14dp"
+    android:background="@drawable/widget_background">
 
-    <!-- Header row: name + couple badge -->
+    <!-- Top accent bar -->
+    <ImageView
+        android:id="@+id/widget_accent_bar"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:layout_alignParentTop="true"
+        android:contentDescription="accent"
+        android:src="@drawable/widget_accent_bar" />
+
+    <!-- Row 1: Goal name + couple badge -->
     <LinearLayout
+        android:id="@+id/widget_top_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/widget_accent_bar"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -23,71 +34,125 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="My Goal"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end"/>
-
-        <TextView
-            android:id="@+id/widget_couple_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="12sp"/>
-    </LinearLayout>
-
-    <!-- Progress bar -->
-    <ProgressBar
-        android:id="@+id/widget_progress_bar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
-        android:max="100"
-        android:progress="0"/>
-
-    <!-- Amount row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:id="@+id/widget_saved"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="$0"
-            android:textSize="16sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/widget_target"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="/ $0"
             android:textSize="11sp"
-            android:textColor="#888888"
-            android:layout_marginStart="4dp"/>
+            android:textStyle="bold"
+            android:textColor="#6B7280"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium" />
 
-        <TextView
-            android:id="@+id/widget_streak"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="12sp"/>
+        <ImageView
+            android:id="@+id/widget_couple_icon"
+            android:layout_width="28dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="couple"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Percentage -->
-    <TextView
-        android:id="@+id/widget_percentage"
+    <!-- Center: Semi-arc progress (rendered as bitmap) -->
+    <ImageView
+        android:id="@+id/widget_arc_progress"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true"
+        android:contentDescription="progress" />
+
+    <!-- Percentage text overlaid on arc -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0%"
-        android:textSize="10sp"
-        android:textColor="#888888"
-        android:layout_marginTop="2dp"/>
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center">
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/widget_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A2E"
+            android:fontFamily="sans-serif-medium"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:id="@+id/widget_percentage_sign"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="%"
+            android:textSize="9sp"
+            android:textColor="#6B7280"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="-4dp"
+            android:includeFontPadding="false" />
+    </LinearLayout>
+
+    <!-- Bottom section -->
+    <LinearLayout
+        android:id="@+id/widget_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <!-- Amount row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_saved"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$0"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A2E"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/widget_target"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="/ $0"
+                android:textSize="9sp"
+                android:textColor="#9CA3AF"
+                android:layout_marginStart="3dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/widget_streak"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11sp"
+                android:textColor="#1A1A2E"
+                android:textStyle="bold"
+                android:background="@drawable/streak_badge_bg"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp" />
+        </LinearLayout>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/widget_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="5dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_progress" />
+    </LinearLayout>
+
+</RelativeLayout>
