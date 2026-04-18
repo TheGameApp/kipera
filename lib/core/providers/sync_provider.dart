@@ -40,6 +40,22 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     connectivity: connectivity,
     notificationHook: notificationHook,
   );
+
+  // Refresh the home-screen widget whenever a realtime sync completes
+  // (e.g. partner check-in). The local check-in flow already refreshes
+  // the widget inline, so this specifically covers remote-triggered updates.
+  service.onRemoteChange = () async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      debugPrint('📱 [SyncProvider] onRemoteChange skipped — no current user');
+      return;
+    }
+    debugPrint('📱 [SyncProvider] onRemoteChange → refreshing widget for user ${user.id}');
+    final widgetService = ref.read(widgetServiceProvider);
+    await widgetService.refreshWidgetFromSelectedGoal(user.id);
+    debugPrint('📱 [SyncProvider] Widget refresh requested');
+  };
+
   unawaited(service.init());
   ref.onDispose(() => service.dispose());
   return service;

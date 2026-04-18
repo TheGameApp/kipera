@@ -22,6 +22,11 @@ class SyncService {
   final ConnectivityService _connectivity;
   final NotificationHook _notificationHook;
 
+  /// Invoked after a realtime-triggered sync finishes. Used by the UI layer
+  /// to refresh dependent surfaces (e.g. the home-screen widget) when a
+  /// partner's check-in arrives.
+  Future<void> Function()? onRemoteChange;
+
   StreamSubscription<bool>? _connectivitySub;
   RealtimeChannel? _realtimeChannel;
   final ValueNotifier<SyncState> stateNotifier = ValueNotifier(SyncState.idle);
@@ -80,9 +85,12 @@ class SyncService {
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'saving_entries',
-          callback: (payload) {
+          callback: (payload) async {
             debugPrint('⚡ [Realtime] Payload received from Supabase! Triggering sync...');
-            syncAll().ignore();
+            await syncAll();
+            debugPrint('⚡ [Realtime] syncAll finished — invoking onRemoteChange');
+            await onRemoteChange?.call();
+            debugPrint('⚡ [Realtime] onRemoteChange completed');
           },
         )
         .subscribe();
