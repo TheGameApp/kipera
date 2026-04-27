@@ -13,6 +13,7 @@ import '../../../../core/utils/achievement_checker.dart';
 import '../../../../core/utils/heatmap_utils.dart';
 import '../../../../core/utils/saving_calculator.dart';
 import '../../../../core/providers/sync_provider.dart';
+import '../../../../core/services/push_notification_service.dart';
 import '../../../../database/app_database.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
@@ -28,6 +29,21 @@ class CheckInScreen extends ConsumerStatefulWidget {
 
 class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   bool _saving = false;
+
+  /// Returns 25, 50 or 75 if the saving jump from [previousTotal] to
+  /// [currentTotal] crossed one of those milestones of [target], else null.
+  /// 100% is handled separately via the `goal_completed` event.
+  int? _milestoneCrossed(double previousTotal, double currentTotal, double target) {
+    if (target <= 0) return null;
+    const milestones = [75, 50, 25];
+    for (final m in milestones) {
+      final threshold = target * m / 100;
+      if (previousTotal < threshold && currentTotal >= threshold) {
+        return m;
+      }
+    }
+    return null;
+  }
 
   Future<void> _checkIn() async {
     if (_saving) return;
@@ -168,6 +184,37 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     // Force background sync to push this entry to partner immediately.
     // Per-goal is enough: we only pushed an entry for this goal.
     ref.read(syncServiceProvider).syncGoal(widget.goalId).ignore();
+
+    // Notify the partner(s) on couple goals. Fire-and-forget: pushes are a
+    // nice-to-have and must never block the check-in UX.
+    if (goal.isCoupleGoal) {
+      final client = ref.read(supabaseClientProvider);
+      final crossedMilestone = _milestoneCrossed(totalSaved - amount, totalSaved, goal.targetAmount);
+      if (progress >= 1.0) {
+        sendPushEvent(
+          client,
+          eventType: 'goal_completed',
+          goalId: widget.goalId,
+          senderUserId: user.id,
+        ).ignore();
+      } else if (crossedMilestone != null) {
+        sendPushEvent(
+          client,
+          eventType: 'milestone_reached',
+          goalId: widget.goalId,
+          senderUserId: user.id,
+          extra: {'percentage': crossedMilestone},
+        ).ignore();
+      } else {
+        sendPushEvent(
+          client,
+          eventType: 'partner_check_in',
+          goalId: widget.goalId,
+          senderUserId: user.id,
+          extra: {'amount': amount},
+        ).ignore();
+      }
+    }
 
     // Update home screen widget only if this is the selected widget goal
     try {

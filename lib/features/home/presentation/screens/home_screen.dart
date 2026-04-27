@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/providers/push_notification_provider.dart';
 import '../../../../core/providers/sync_provider.dart';
 import '../../../../core/services/sync_service.dart';
 import '../providers/home_provider.dart';
@@ -17,6 +18,8 @@ class HomeScreen extends ConsumerWidget {
     debugPrint('💾 [HomeScreen] build');
     // 🔄 Activar sync automático con Supabase cada vez que se abre el home
     ref.watch(autoSyncProvider);
+    // 📬 Activar lifecycle de push notifications (registra/remueve FCM token por sesión)
+    ref.watch(pushNotificationLifecycleProvider);
     final syncState = ref.watch(syncStateProvider);
     final goalsAsync = ref.watch(activeGoalsProvider);
     final user = ref.watch(currentUserProvider);

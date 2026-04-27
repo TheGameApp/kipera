@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/connectivity_service.dart';
-import '../services/notification_hook.dart';
 import '../services/supabase_service.dart';
 import '../services/sync_service.dart';
 import '../services/widget_service.dart';
@@ -22,23 +21,16 @@ final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService(Supabase.instance.client);
 });
 
-/// Notification hook (no-op by default; swap for FCM implementation later).
-final notificationHookProvider = Provider<NotificationHook>((ref) {
-  return const NoOpNotificationHook();
-});
-
 /// Singleton sync service — depends on DB, Supabase, and connectivity.
 final syncServiceProvider = Provider<SyncService>((ref) {
   final db = ref.watch(databaseProvider);
   final supabase = ref.watch(supabaseServiceProvider);
   final connectivity = ref.watch(connectivityServiceProvider);
-  final notificationHook = ref.watch(notificationHookProvider);
 
   final service = SyncService(
     db: db,
     supabase: supabase,
     connectivity: connectivity,
-    notificationHook: notificationHook,
   );
 
   // Refresh the home-screen widget whenever a realtime sync completes

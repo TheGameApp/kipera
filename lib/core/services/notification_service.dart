@@ -56,7 +56,10 @@ class NotificationService {
     );
     _initialized = true;
 
-    // Request permissions on iOS and enable foreground presentation
+    // TODO(UX): defer the iOS permission prompt to a contextual moment
+    // (e.g. first couple goal creation) with an explanatory pre-prompt,
+    // instead of asking at app launch. iOS shows this dialog only once per
+    // install — denial requires the user to go to Settings to reverse.
     final iosPlugin = _plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../database/app_database.dart';
-import 'notification_hook.dart';
+import 'push_notification_service.dart';
 import 'supabase_service.dart';
 
 /// Service managing invitation lifecycle: create, accept, reject, deep links.
@@ -9,15 +9,12 @@ class InvitationService {
   final SupabaseService _supabase;
   // ignore: unused_field — used in future phases for local caching
   final AppDatabase _db;
-  final NotificationHook _notificationHook;
 
   InvitationService({
     required SupabaseService supabase,
     required AppDatabase db,
-    NotificationHook notificationHook = const NoOpNotificationHook(),
   })  : _supabase = supabase,
-        _db = db,
-        _notificationHook = notificationHook;
+        _db = db;
 
   /// Send an invitation for a couple goal.
   Future<String> sendInvitation({
@@ -45,6 +42,16 @@ class InvitationService {
       rethrow;
     }
 
+    // Fire-and-forget push to the invitee. Failure here must not break the
+    // invitation flow — the row is already created in Supabase.
+    sendPushEvent(
+      _supabase.client,
+      eventType: 'invitation_sent',
+      goalId: goalId,
+      senderUserId: inviterUserId,
+      invitationId: invitationId,
+    ).ignore();
+
     return invitationId;
   }
 
@@ -62,14 +69,42 @@ class InvitationService {
   }
 
   /// Accept an invitation — calls the server-side RPC for transactional safety.
-  Future<void> acceptInvitation(String invitationId) async {
+  /// [acceptedByUserId] is the id of the user accepting the invitation; used
+  /// to notify the goal owner via push. Optional for backwards compatibility.
+  Future<void> acceptInvitation(String invitationId, {String? acceptedByUserId}) async {
     debugPrint('❤️ [InvitationService] Accepting invitation — id: $invitationId');
     try {
       await _supabase.acceptInvitation(invitationId);
       debugPrint('✅ [InvitationService] Invitation accepted — id: $invitationId');
 
-      // 🔔 Notification hook
-      await _notificationHook.onInvitationAccepted(invitationId, '');
+      // No local notification for the accepter — they just tapped "Accept"
+      // and the screen already shows a success snackbar. The inviter is
+      // notified via FCM push below.
+
+      // Fire-and-forget push to the goal owner. We need the goal_id from the
+      // invitation row — look it up post-accept (the row still exists, status
+      // just changed to `accepted`).
+      if (acceptedByUserId != null) {
+        try {
+          final inv = await _supabase.client
+              .from('goal_invitations')
+              .select('goal_id')
+              .eq('id', invitationId)
+              .maybeSingle();
+          final goalId = inv?['goal_id'] as String?;
+          if (goalId != null) {
+            sendPushEvent(
+              _supabase.client,
+              eventType: 'invitation_accepted',
+              goalId: goalId,
+              senderUserId: acceptedByUserId,
+              invitationId: invitationId,
+            ).ignore();
+          }
+        } catch (e) {
+          debugPrint('⚠️ [InvitationService] push lookup failed: $e');
+        }
+      }
     } catch (e) {
       debugPrint('❌ [InvitationService] Accept failed — id: $invitationId | error: $e');
       rethrow;

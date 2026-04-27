@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "598392372989",
+    "project_id": "kipera-b70db",
+    "storage_bucket": "kipera-b70db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:598392372989:android:85c0d5b3dffedc84734894",
+        "android_client_info": {
+          "package_name": "com.kipera.kipera"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDc8HgC_HL_91xIrk7p8ZZWIwIV0AGZyoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

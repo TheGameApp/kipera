@@ -9,8 +9,7 @@ import '../../../home/presentation/providers/home_provider.dart';
 final invitationServiceProvider = Provider<InvitationService>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
   final db = ref.watch(databaseProvider);
-  final hook = ref.watch(notificationHookProvider);
-  return InvitationService(supabase: supabase, db: db, notificationHook: hook);
+  return InvitationService(supabase: supabase, db: db);
 });
 
 /// Streams pending invitations reactively for the current user.

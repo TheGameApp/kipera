@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../database/app_database.dart';
 import 'connectivity_service.dart';
-import 'notification_hook.dart';
 import 'supabase_service.dart';
 
 /// Sync state enum for UI display.
@@ -20,7 +19,6 @@ class SyncService {
   final AppDatabase _db;
   final SupabaseService _supabase;
   final ConnectivityService _connectivity;
-  final NotificationHook _notificationHook;
 
   /// Invoked after a realtime-triggered sync finishes. Used by the UI layer
   /// to refresh dependent surfaces (e.g. the home-screen widget) when a
@@ -48,11 +46,9 @@ class SyncService {
     required AppDatabase db,
     required SupabaseService supabase,
     required ConnectivityService connectivity,
-    NotificationHook notificationHook = const NoOpNotificationHook(),
   })  : _db = db,
         _supabase = supabase,
-        _connectivity = connectivity,
-        _notificationHook = notificationHook;
+        _connectivity = connectivity;
 
   /// Carga el timestamp del último sync desde disco y arranca el listener de conectividad.
   Future<void> init() async {
@@ -310,17 +306,9 @@ class SyncService {
         ),
         enqueueSync: false,
       );
-
-      // 🔔 Notification hook: partner check-in from remote
-      // If this entry doesn't belong to the goal owner, it's a partner's entry
-      final goal = await _db.goalsDao.getGoalById(goalId);
-      if (goal != null && goal.userId != userId && goal.isCoupleGoal) {
-        await _notificationHook.onPartnerCheckIn(
-          goalId,
-          userId,
-          (remote['actual_amount'] as num).toDouble(),
-        );
-      }
+      // Partner check-in notifications are delivered via FCM push from the
+      // `send-push-notification` Edge Function — firing a local notification
+      // here would double up (and also replay on every sync-pull).
     }
   }
 
@@ -439,17 +427,8 @@ class SyncService {
         ),
         enqueueSync: false,
       );
-
-      // Partner check-in notification hook
-      final goal = await _db.goalsDao.getGoalById(goalId);
-      final userId = remote['user_id'] as String;
-      if (goal != null && goal.userId != userId && goal.isCoupleGoal) {
-        await _notificationHook.onPartnerCheckIn(
-          goalId,
-          userId,
-          (remote['actual_amount'] as num).toDouble(),
-        );
-      }
+      // Partner check-in notifications are delivered via FCM push — see note
+      // in `_pullEntries` above.
     }
   }
 

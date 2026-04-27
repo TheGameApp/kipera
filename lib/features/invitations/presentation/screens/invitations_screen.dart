@@ -8,6 +8,7 @@ import '../../../../core/widgets/kipera_snackbar.dart';
 import '../providers/invitations_provider.dart';
 import '../widgets/invitation_card.dart';
 import '../../../../core/providers/sync_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class InvitationsScreen extends ConsumerStatefulWidget {
   const InvitationsScreen({super.key});
@@ -27,7 +28,8 @@ class _InvitationsScreenState extends ConsumerState<InvitationsScreen> {
     setState(() => _processingId = invitationId);
     try {
       final service = ref.read(invitationServiceProvider);
-      await service.acceptInvitation(invitationId);
+      final currentUser = ref.read(currentUserProvider);
+      await service.acceptInvitation(invitationId, acceptedByUserId: currentUser?.id);
       ref.invalidate(pendingInvitationsProvider);
       debugPrint(
         '✅ [InvitationsScreen] Invitation accepted — id: $invitationId',
