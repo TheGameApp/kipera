@@ -123,6 +123,7 @@
   "enterName": "Enter your name",
   "enterNameAndAmount": "Please enter a goal name and target amount to continue.",
   "enterPartnerEmail": "Enter a valid email address for your partner.",
+  "cannotInviteSelf": "You cannot invite yourself to a goal.",
   "enterPassword": "Enter your password",
   "errorCreatingGoal": "Something went wrong creating your goal. Please try again.",
   "errorPrefix": "Error: {error}",

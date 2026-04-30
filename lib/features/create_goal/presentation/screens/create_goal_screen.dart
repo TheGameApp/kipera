@@ -88,7 +88,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       if (name.isEmpty && amountText.isEmpty) {
         KiperaSnackBar.show(
           context,
-        message: context.l10n.enterNameAndAmount,
+          message: context.l10n.enterNameAndAmount,
           type: KiperaSnackType.warning,
         );
         return false;
@@ -129,6 +129,18 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
             message: context.l10n.enterPartnerEmail,
             type: KiperaSnackType.warning,
             icon: Icons.email_outlined,
+          );
+          return false;
+        }
+
+        final user = ref.read(currentUserProvider);
+        if (user != null &&
+            email.toLowerCase() == (user.email?.toLowerCase() ?? '')) {
+          KiperaSnackBar.show(
+            context,
+            message: context.l10n.cannotInviteSelf,
+            type: KiperaSnackType.warning,
+            icon: Icons.person_off_outlined,
           );
           return false;
         }
@@ -217,7 +229,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final memberCount = _isCoupleGoal ? 2 : 1;
-      
+
       final days = SavingCalculator.estimatedDays(
         method: _selectedMethod,
         targetAmount: amount,
@@ -230,7 +242,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           .toRadixString(16)
           .padLeft(8, '0');
 
-      debugPrint('[CreateGoal] colorHex: $colorHex, userId: ${user.id}, days: $days');
+      debugPrint(
+        '[CreateGoal] colorHex: $colorHex, userId: ${user.id}, days: $days',
+      );
 
       final goalId = const Uuid().v4();
       final db = ref.read(databaseProvider);
@@ -281,7 +295,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           );
           debugPrint('✅ [CreateGoal] invitation sent to $partnerEmail');
         } catch (e) {
-          debugPrint('⚠️ [CreateGoal] invitation send failed but goal was created: $e');
+          debugPrint(
+            '⚠️ [CreateGoal] invitation send failed but goal was created: $e',
+          );
           // No se bloquea la creación del goal si la invitación falla
         }
       }
@@ -337,7 +353,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
     final stepTitles = [
       context.l10n.stepOfTotal(1, 3),
       context.l10n.stepOfTotal(2, 3),
-      context.l10n.stepOfTotal(3, 3)
+      context.l10n.stepOfTotal(3, 3),
     ];
 
     return GestureDetector(
@@ -378,8 +394,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                             color: i < _currentStep
                                 ? AppColors.primary
                                 : (context.isDarkMode
-                                    ? AppColors.borderDark
-                                    : AppColors.borderLight),
+                                      ? AppColors.borderDark
+                                      : AppColors.borderLight),
                           ),
                         ),
                     ],
@@ -408,7 +424,9 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.purple,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: AppColors.purple.withValues(alpha: 0.5),
+                      disabledBackgroundColor: AppColors.purple.withValues(
+                        alpha: 0.5,
+                      ),
                       disabledForegroundColor: Colors.white70,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
@@ -467,8 +485,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           color: isCompleted || isCurrent
               ? AppColors.primary
               : (context.isDarkMode
-                  ? AppColors.borderDark
-                  : AppColors.borderLight),
+                    ? AppColors.borderDark
+                    : AppColors.borderLight),
           width: isCurrent ? 2 : 1.5,
         ),
       ),
@@ -538,6 +556,196 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
             ),
           ),
           const SizedBox(height: 24),
+
+          // ─── Couple Goal Toggle ───────────────────────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isCoupleGoal
+                  ? AppColors.pink.withValues(
+                      alpha: context.isDarkMode ? 0.12 : 0.08,
+                    )
+                  : (context.isDarkMode
+                        ? AppColors.inputBgDark
+                        : AppColors.inputBgLight),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _isCoupleGoal
+                    ? AppColors.pink
+                    : (context.isDarkMode
+                          ? AppColors.borderDark
+                          : AppColors.borderLight),
+                width: _isCoupleGoal ? 1.5 : 1,
+              ),
+              boxShadow: _isCoupleGoal && !context.isDarkMode
+                  ? [
+                      BoxShadow(
+                        color: AppColors.pink.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    final newValue = !_isCoupleGoal;
+                    if (!newValue)
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    setState(() => _isCoupleGoal = newValue);
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _isCoupleGoal
+                              ? (context.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : Colors.white)
+                              : (context.isDarkMode
+                                    ? AppColors.backgroundDark
+                                    : Colors.white),
+                          shape: BoxShape.circle,
+                          boxShadow: !_isCoupleGoal
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: const Text('❤️', style: TextStyle(fontSize: 22)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.l10n.coupleGoalLabel,
+                              style: context.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: _isCoupleGoal
+                                    ? (context.isDarkMode
+                                          ? Colors.white
+                                          : AppColors.pink)
+                                    : (context.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              context.l10n.saveWithPartner,
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: _isCoupleGoal && context.isDarkMode
+                                    ? Colors.white70
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isCoupleGoal,
+                        onChanged: (val) {
+                          if (!val)
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          setState(() => _isCoupleGoal = val);
+                        },
+                        activeTrackColor: AppColors.pink,
+                        activeThumbColor: Colors.white,
+                        inactiveThumbColor: context.isDarkMode
+                            ? Colors.grey[400]
+                            : Colors.white,
+                        inactiveTrackColor: context.isDarkMode
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOutCubic,
+                  child: _isCoupleGoal
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: _partnerEmailController,
+                                keyboardType: TextInputType.emailAddress,
+                                style: TextStyle(
+                                  color: context.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: context.l10n.partnerEmailHint,
+                                  hintStyle: TextStyle(
+                                    color: context.isDarkMode
+                                        ? Colors.white54
+                                        : Colors.black54,
+                                  ),
+                                  prefixIcon: const Icon(Icons.email_outlined),
+                                  prefixIconColor: AppColors.pink,
+                                  filled: true,
+                                  fillColor: context.isDarkMode
+                                      ? Colors.black.withValues(alpha: 0.3)
+                                      : Colors.white,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.pink,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: AppColors.pink.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Text(
+                                  context.l10n.partnerInviteInfo,
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: context.isDarkMode
+                                        ? Colors.white60
+                                        : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox(width: double.infinity, height: 0),
+                ),
+              ],
+            ),
+          ),
+
+          // ─────────────────────────────────────────────────────────────────
+          const SizedBox(height: 24),
+
           // Reminder Time
           _buildRequiredLabel(context.l10n.reminderTime),
           const SizedBox(height: 8),
@@ -553,9 +761,11 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _reminderTime == null
-                      ? AppColors.warning.withValues(alpha: 0.7)
+                      ? (context.isDarkMode
+                            ? AppColors.borderDark
+                            : AppColors.borderLight)
                       : AppColors.primary,
-                  width: 1.5,
+                  width: _reminderTime == null ? 1.0 : 1.5,
                 ),
               ),
               child: Row(
@@ -564,7 +774,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                     Icons.notifications_outlined,
                     color: _reminderTime != null
                         ? AppColors.primary
-                        : AppColors.warning,
+                        : AppColors.textSecondary,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -579,16 +789,21 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                           style: context.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
                             color: _reminderTime != null
-                                ? null
+                                ? (context.isDarkMode
+                                      ? Colors.white
+                                      : AppColors.textLight)
                                 : AppColors.textSecondary,
                           ),
                         ),
                         if (_reminderTime == null)
-                          Text(
-                            context.l10n.requiredReminder,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: AppColors.warning.withValues(alpha: 0.8),
-                              fontSize: 11,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              context.l10n.requiredReminder,
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                       ],
@@ -607,92 +822,6 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          // ─── Couple Goal Toggle ───────────────────────────────────────────
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _isCoupleGoal
-                  ? AppColors.pink.withValues(alpha: context.isDarkMode ? 0.15 : 0.08)
-                  : (context.isDarkMode ? AppColors.inputBgDark : AppColors.inputBgLight),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _isCoupleGoal ? AppColors.pink : (context.isDarkMode ? AppColors.borderDark : AppColors.borderLight),
-                width: _isCoupleGoal ? 1.5 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text('❤️', style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.l10n.coupleGoalLabel,
-                            style: context.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            context.l10n.saveWithPartner,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _isCoupleGoal,
-                      onChanged: (val) => setState(() => _isCoupleGoal = val),
-                      activeTrackColor: AppColors.pink,
-                      activeThumbColor: Colors.white,
-                      inactiveThumbColor: Colors.white,
-                      inactiveTrackColor: context.isDarkMode ? AppColors.borderDark : AppColors.borderLight,
-                    ),
-                  ],
-                ),
-                // Partner email field — solo visible si es couple goal
-                if (_isCoupleGoal) ...[
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _partnerEmailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.partnerEmailHint,
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      prefixIconColor: AppColors.pink,
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.pink, width: 1.5),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: AppColors.pink.withValues(alpha: 0.4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.partnerInviteInfo,
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // ─────────────────────────────────────────────────────────────────
 
           const SizedBox(height: 24),
           if (_amountController.text.isNotEmpty) _buildEstimatePreview(),
@@ -707,7 +836,7 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
 
     final config = _buildConfig();
     final memberCount = _isCoupleGoal ? 2 : 1;
-    
+
     final days = SavingCalculator.estimatedDays(
       method: _selectedMethod,
       targetAmount: amount,
@@ -734,17 +863,11 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.purple.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.rocket_launch_rounded,
-            color: AppColors.purple,
-            size: 28,
-          ),
+          Icon(Icons.rocket_launch_rounded, color: AppColors.purple, size: 28),
           const SizedBox(height: 8),
           RichText(
             textAlign: TextAlign.center,
@@ -783,7 +906,8 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
   Widget _buildMethodStep(bool isPremium) {
     return ListView.separated(
       padding: const EdgeInsets.all(20),
-      itemCount: SavingMethod.values.length + 1, // +1 for estimate preview at top
+      itemCount:
+          SavingMethod.values.length + 1, // +1 for estimate preview at top
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         // First item is the estimate preview
@@ -810,16 +934,16 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
             decoration: BoxDecoration(
               color: _selectedMethod == method
                   ? (context.isDarkMode
-                      ? AppColors.primaryContainer.withValues(alpha: 0.25)
-                      : AppColors.primaryContainer)
+                        ? AppColors.primaryContainer.withValues(alpha: 0.25)
+                        : AppColors.primaryContainer)
                   : context.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _selectedMethod == method
                     ? AppColors.primary
                     : (context.isDarkMode
-                        ? AppColors.borderDark
-                        : AppColors.borderLight),
+                          ? AppColors.borderDark
+                          : AppColors.borderLight),
                 width: _selectedMethod == method ? 2 : 1,
               ),
             ),
@@ -950,8 +1074,10 @@ class _CreateGoalScreenState extends ConsumerState<CreateGoalScreen> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (context.isDarkMode
-                            ? AppColors.primaryContainer.withValues(alpha: 0.25)
-                            : AppColors.primaryContainer)
+                              ? AppColors.primaryContainer.withValues(
+                                  alpha: 0.25,
+                                )
+                              : AppColors.primaryContainer)
                         : context.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: isSelected

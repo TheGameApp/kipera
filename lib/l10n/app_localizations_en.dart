@@ -258,6 +258,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a valid email address for your partner.';
 
   @override
+  String get cannotInviteSelf => 'You cannot invite yourself to a goal.';
+
+  @override
   String get enterPassword => 'Enter your password';
 
   @override

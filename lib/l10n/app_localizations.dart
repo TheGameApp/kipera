@@ -536,6 +536,12 @@ abstract class AppLocalizations {
   /// **'Enter a valid email address for your partner.'**
   String get enterPartnerEmail;
 
+  /// No description provided for @cannotInviteSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot invite yourself to a goal.'**
+  String get cannotInviteSelf;
+
   /// No description provided for @enterPassword.
   ///
   /// In en, this message translates to:

@@ -123,6 +123,7 @@
   "enterName": "Introduce tu nombre",
   "enterNameAndAmount": "Por favor introduce un nombre y cantidad para continuar.",
   "enterPartnerEmail": "Introduce un correo válido para tu pareja.",
+  "cannotInviteSelf": "No puedes invitarte a ti mismo a una meta.",
   "enterPassword": "Introduce tu contraseña",
   "errorCreatingGoal": "Algo salió mal al crear tu meta. Inténtalo de nuevo.",
   "errorPrefix": "Error: {error}",

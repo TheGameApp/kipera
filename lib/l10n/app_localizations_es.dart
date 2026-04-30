@@ -257,6 +257,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enterPartnerEmail => 'Introduce un correo válido para tu pareja.';
 
   @override
+  String get cannotInviteSelf => 'No puedes invitarte a ti mismo a una meta.';
+
+  @override
   String get enterPassword => 'Introduce tu contraseña';
 
   @override
